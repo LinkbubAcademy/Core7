@@ -1,0 +1,25 @@
+﻿@page "/Testeo"
+
+<h3>Test</h3>
+
+<button @onclick="@PrintNames"></button>
+
+<ul>
+
+    @foreach(var name in Names)
+    {
+        <li>@name</li>
+    }
+
+</ul>
+
+@code 
+{
+    public List<string> Names { get; set; } = new List<string>();
+
+    void PrintNames()
+    {
+        Names.Add("Egle");
+        Names.Add("Jose");
+    }
+}

@@ -1,0 +1,106 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Common.Lib.Services.Protobuf";
+
+service CoreServices
+{
+  rpc RequestAddNewEntity (SaveEntityParamsCarrier) returns (SaveResult);
+
+  rpc QueryRepositoryForEntity(QueryRepositoryParamsCarrier) returns (QueryEntityResult);
+  rpc QueryRepositoryForEntities(QueryRepositoryParamsCarrier) returns (QueryEntitiesResult);
+
+  rpc QueryRepositoryForBool(QueryRepositoryParamsCarrier) returns (QueryValueResult);
+  rpc QueryRepositoryForString(QueryRepositoryParamsCarrier) returns (QueryValueResult);
+  rpc QueryRepositoryForInt(QueryRepositoryParamsCarrier) returns (QueryValueResult);
+  rpc QueryRepositoryForDouble(QueryRepositoryParamsCarrier) returns (QueryValueResult);
+  rpc QueryRepositoryForByteArray(QueryRepositoryParamsCarrier) returns (QueryValueResult);
+  rpc QueryRepositoryForDateTime(QueryRepositoryParamsCarrier) returns (QueryValueResult);
+  rpc QueryRepositoryForGuid(QueryRepositoryParamsCarrier) returns (QueryValueResult);
+
+
+
+  rpc QueryRepositoryForValues(QueryRepositoryParamsCarrier) returns (QueryValuesResult);
+}
+
+message ParamsCarrierInfo
+{	
+	string sUserId = 1;
+	string UserToken = 2;
+    int64 lActionTime = 3;
+}
+
+message QueryRepositoryParamsCarrier
+{
+	ParamsCarrierInfo ServiceInfo = 1;
+	string RepositoryType = 2;
+	int32 NestingLevel = 3;
+	repeated QueryOperationInfo sOperations = 4;	
+}
+
+message QueryOperationInfo
+{
+	int32 QueryType = 1;
+	repeated QueryExpressionInfo sExpressions = 2;
+}
+
+message QueryExpressionInfo
+{        
+	int32 sLogicalOperationType = 1;
+    int32 sComparisonType = 2;
+	bool IsSelector = 3;
+	string Type = 4;
+	repeated string sParameters = 5;
+}
+
+message SaveEntityParamsCarrier
+{
+	ParamsCarrierInfo ServiceInfo = 1;
+	EntityInfo EntityInfo = 2;
+}
+
+message EntityInfo
+{
+	string sEntityId = 1;
+	bool IsNew = 2;
+	string EntityModelType = 3;
+	map<int32, string> SerializedChanges = 4;
+}
+
+message ActionResult {
+  bool IsSuccess = 1;
+  string Message = 2;
+}
+
+message SaveResult
+{	
+  bool IsSuccess = 1;
+  string Message = 2;
+  repeated string sErrors = 3;
+}
+
+message QueryEntityResult
+{
+	ActionResult ActionResult = 1;
+	EntityInfo sValue = 2;
+	map<string, EntityInfo> sReferencedEntities = 3;
+}
+
+message QueryEntitiesResult
+{	
+	ActionResult ActionResult = 1;
+	repeated EntityInfo sValue = 2;
+	map<string, EntityInfo> sReferencedEntities = 3;
+}
+
+message QueryValueResult
+{
+	ActionResult ActionResult = 1;
+	string sValue = 2;
+}
+
+message QueryValuesResult
+{
+	ActionResult ActionResult = 1;
+	repeated string sValue = 2;
+}
+

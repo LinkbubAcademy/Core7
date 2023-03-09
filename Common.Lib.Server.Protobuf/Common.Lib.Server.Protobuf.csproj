@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Core.Api" Version="2.51.0-pre1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common.Lib.Server\Common.Lib.Server.csproj" />
+    <ProjectReference Include="..\Common.Lib.Services.Protobuf\Common.Lib.Services.Protobuf.csproj" />
+    <ProjectReference Include="..\Common.Lib\Common.Lib.csproj" />
+  </ItemGroup>
+
+</Project>

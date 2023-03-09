@@ -1,0 +1,182 @@
+﻿@page "/"
+@using Common.Lib.Authentication;
+@using Common.Lib.Core.Context;
+@using Common.Lib.Core.Expressions;
+@using Common.Lib.Core.Tracking;
+@using Common.Lib.Services;
+@using Common.Lib.Services.ParamsCarriers;
+@using System.Linq.Expressions;
+@using Test.Lib.Models;
+
+@inject IContextFactory IContextFactory;
+
+<h1>Hello, world! email:@SelectedEmail</h1>
+<button @onclick="@(async () => await TestCreateUsersAsync())">Create Users</button>
+<button @onclick="@(async () => await TestService2Async())">Get Users</button>
+<button @onclick="@(async () => await TestService3Async())">Get Access Levels</button>
+
+<h3>Emails</h3>
+<ul>
+    @foreach (var email in Emails)
+    {
+        <li>@email</li>
+    }
+</ul>
+
+<h3>Posts</h3>
+<ul>
+    @foreach (var post in Posts)
+    {
+        <li>@post.Message</li>
+    }
+</ul>
+
+<h3>Log</h3>
+
+<ul>
+
+    @foreach(var entry in Log)
+    {
+        <li>
+            @entry
+        </li>
+    }
+
+</ul>
+
+@code
+{
+    AndOperation And { get; set; } = new AndOperation();
+    OrOperation Or { get; set; } = new OrOperation();
+
+    List<string> Emails { get; set; } = new List<string>();
+    List<Post> Posts { get; set; } = new List<Post>();
+    List<string> Log { get; set; } = new List<string>();
+
+    string SelectedEmail { get; set; } = string.Empty;
+
+    async Task TestCreateUsersAsync()
+    {
+        var user1 = IContextFactory.NewModel<Person>();
+        user1.Name = "Lolo";
+        user1.Email = "lolo@lolo.com";
+        user1.Password = "1234";
+        user1.AccessLevel = 1;
+        var sr1 = await user1.SaveAsync();
+
+        ConsoleWriteLine($"Created User:{user1.Id}");
+
+        var user2 = IContextFactory.NewModel<Person>();
+        user2.Name = "AAAA";
+        user2.Email = "a@a.com";
+        user2.Password = "abcd";
+        user2.AccessLevel = 2;
+        var sr2 = await user2.SaveAsync();
+        ConsoleWriteLine($"Created User:{user2.Id}");
+
+
+        var user3 = IContextFactory.NewModel<Person>();
+        user3.Name = "Pepepe";
+        user3.Email = "p@p.com";
+        user3.Password = "1234abcd";
+        user3.AccessLevel = 1;
+        var sr3 = await user3.SaveAsync();
+        ConsoleWriteLine($"Created User:{user3.Id}");
+
+        var post = IContextFactory.NewModel<Post>();
+        post.Message = "Mola la gramola";
+        post.OwnerId = user1.Id;
+        var sr4 = post.SaveAsync();
+        ConsoleWriteLine($"Created Post:{post.Id} {post.Message}");
+
+        var sr5 = await user1.AddPostAsync("Mola la gramola más");
+
+        ConsoleWriteLine($"Created Post: {sr5.IsSuccess}");
+    }    
+
+    async Task TestService2Async()
+    {
+        using var repoUsers = IContextFactory.GetRepository<Person>();
+
+        var qr0 = await repoUsers
+                            .DeclareChildrenPolicy(2)
+                            .Where(UserAccessLevel.EqualsTo(1))
+                            .ToListAsync();
+
+        foreach(var p in qr0.Value)
+        {
+            ConsoleWriteLine(p.Name);
+
+            foreach (var pt in p.Posts)
+            {    
+                ConsoleWriteLine(pt.Message);
+                ConsoleWriteLine(pt.Owner.Name);
+            }
+        }
+
+
+        var qr1 = await repoUsers
+                            .Where(UserAccessLevel.GreaterThan(1), Or, UserEmail.EqualsTo("lolo@lolo.com"))
+                            .OrderBy(UserEmail.Property)
+                            .SelectAsync(UserEmail.Property);
+
+        if (qr1.IsSuccess && qr1.Value != null)
+        { 
+            Emails = qr1.Value;
+            qr1.Value.DoForeach(x => ConsoleWriteLine(x));
+        }
+
+
+        var qr2 = await repoUsers
+                            .FirstOrDefaultAsync(UserEmail.EqualsTo("lolo@lolo.com"));
+
+        if (qr2.IsSuccess && qr2.Value != null)
+        {
+            SelectedEmail = qr2.Value.Email;
+        }
+
+        var qr3 = await repoUsers.DistinctAsync(UserAccessLevel.Property);
+
+        Emails = qr3.Value.Select(x => x.ToString()).ToList();
+
+        StateHasChanged();
+    }
+
+    async Task TestService3Async()
+    {
+        //Assert
+        //await TestCreateUsersAsync();
+
+        using var repoUsers = IContextFactory.GetRepository<Person>();
+
+        var qr1 = await repoUsers.MaxAsync(UserAccessLevel.Property);
+        ConsoleWriteLine($"Max Access Level(2):{qr1.Value}");
+
+        var qr2 = await repoUsers.MinAsync(UserAccessLevel.Property);
+        ConsoleWriteLine($"Min Access Level(1):{qr2.Value}");
+
+        var qr3 = await repoUsers.AvgAsync(UserAccessLevel.Property);
+        ConsoleWriteLine($"Avg Access Level(1.33333):{qr3.Value}");
+
+        var qr4 = await repoUsers.CountAsync();
+        ConsoleWriteLine($"Count all users(3):{qr4.Value}");
+
+        var qr5 = await repoUsers.CountAsync(UserAccessLevel.EqualsTo(1));
+        ConsoleWriteLine($"Count all users where access level 1 (2):{qr5.Value}");
+
+        ConsoleWriteLine("requesting any");
+        var qr6 = await repoUsers.AnyAsync(UserAccessLevel.EqualsTo(2));
+        ConsoleWriteLine($"Is any user  with access level 2 (true):{qr6.Value}");
+
+        var qr7 = await repoUsers.AllAsync(UserAccessLevel.EqualsTo(1));
+        ConsoleWriteLine($"all users  are access level 1 (false):{qr7.Value}");
+
+        var qr8 = await repoUsers.NoneAsync(UserAccessLevel.EqualsTo(3));
+        ConsoleWriteLine($"no user with access level 3 (true):{qr8.Value}");
+    }
+
+    void ConsoleWriteLine(string msg)
+    {
+        Log.Add(msg);
+    }
+}

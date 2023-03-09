@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common.Lib.Client.Protobuf\Common.Lib.Client.Protobuf.csproj" />
+    <ProjectReference Include="..\..\Common.Lib.Client\Common.Lib.Client.csproj" />
+    <ProjectReference Include="..\..\Common.Lib.Services.Protobuf\Common.Lib.Services.Protobuf.csproj" />
+    <ProjectReference Include="..\..\Common.Lib\Common.Lib.csproj" />
+    <ProjectReference Include="..\..\Test.Lib\Test.Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Common.Lib.Client.Blazor">
+      <HintPath>..\..\Common.Lib.Client.Blazor\bin\Debug\net7.0\Common.Lib.Client.Blazor.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

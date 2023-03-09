@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.50.0-pre1" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.50.0-pre1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Common.Lib.Server.Protobuf\Common.Lib.Server.Protobuf.csproj" />
+    <ProjectReference Include="..\..\Common.Lib.Server\Common.Lib.Server.csproj" />
+    <ProjectReference Include="..\..\Test.Lib.DataAccess.EFCore\Test.Lib.DataAccess.EFCore.csproj" />
+    <ProjectReference Include="..\..\Test.Lib\Test.Lib.csproj" />
+    <ProjectReference Include="..\Client\Test.Blazor.Client.csproj" />
+  </ItemGroup>
+
+</Project>
