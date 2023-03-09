@@ -7,7 +7,8 @@ namespace Test.Blazor.Client.Context
 {
     public class PostClientRepository : GenericRepository<Post>, IPostRepository
     {
-        public PostClientRepository(IDbSet<Post> dbSet) : base(dbSet)
+        public PostClientRepository(IDbSet<Post> dbSet, IWorkflowManager wfm) 
+            : base(dbSet, wfm)
         {
         }
 

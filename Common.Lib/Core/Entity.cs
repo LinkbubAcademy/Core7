@@ -179,25 +179,13 @@ namespace Common.Lib.Core
                 });
 
             if (ContextFactory == null)
-                return await Task.FromResult(new SaveResult() 
-                { 
-                    IsSuccess = false, 
-                    Message = "Entity created without Context Factory. Use ContextFactory.NewModel<T>()" 
-                });
+                throw new ContextFactoryNullException("Entity", "SaveAsync");
 
             if (uow != null && !ContextFactory.IsServerMode)
-            {
-                throw new ArgumentException("You cannot use SaveAsync with UnitOfWork in client mode. Use Save instead");
-            }
+                throw new ApplicationException("You cannot use SaveAsync with UnitOfWork in client mode. Use Save instead");
 
-            using var repo = ContextFactory.GetRepository<T>(uow);
-            
-            if (repo == null)
-                return await Task.FromResult(new SaveResult()
-                {
-                    IsSuccess = false,
-                    Message = $"Repository for {typeof(T).Name} is not registered"
-                });
+            using var repo = ContextFactory.GetRepository<T>(uow) ?? 
+                throw new RepositoryNotRegisteredException(typeof(T));
 
             var output = new SaveResult();
 

@@ -25,6 +25,8 @@ namespace Test.Blazor.Client.AppConfig
         {
             Builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Test.Blazor.ServerAPI"));
             Builder.Services.AddHttpClient("Test.Blazor.ServerAPI", client => client.BaseAddress = new Uri(Builder.HostEnvironment.BaseAddress));
+
+            Builder.Services.AddTransient<IWorkflowManager>(sp => new WorkflowManager());
             Builder.Services.AddTransient<IServiceInvoker>(sp => new ServiceInvoker(
                                                                     sp.GetRequiredService<NavigationManager>().BaseUri,
                                                                     sp.GetService<IContextFactory>()));

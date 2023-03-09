@@ -7,19 +7,19 @@ namespace Common.Lib.Server.Context
 {
     public class ServerRepository<T> : GenericRepository<T>, IServerRepository where T : Entity, new()
     {
-        public ServerRepository(IDbSet<T> dbSet) : base(dbSet)
+        public ServerRepository(IDbSet<T> dbSet, IWorkflowManager wfm) 
+            : base(dbSet, wfm)
         {
+
         }
 
-
-        public IServerRepository DeclareChildrenPolicy(int nestingLevel)
+        public new IServerRepository DeclareChildrenPolicy(int nestingLevel)
         {
             this.DbSet.NestingLevel = nestingLevel < 0 ? 0 : nestingLevel;
             return this;
         }
 
-        #region get value
-
+        #region Get value
 
         public Task<QueryResult<bool>> ExecuteGetBoolValueRequest(IEnumerable<IQueryOperationInfo> operations)
         {
@@ -79,7 +79,6 @@ namespace Common.Lib.Server.Context
                 Value = qr1.Value
             };
         }
-
         
         public Task<QueryResult<List<object>>> ExecuteGetValuesRequest(IEnumerable<IQueryOperationInfo> operations)
         {

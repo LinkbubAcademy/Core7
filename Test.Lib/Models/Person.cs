@@ -3,8 +3,6 @@ using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Tracking;
 using Common.Lib.Infrastructure.Actions;
-using System.Runtime.Intrinsics.X86;
-using System.Xml.Linq;
 
 namespace Test.Lib.Models
 {
@@ -36,14 +34,17 @@ namespace Test.Lib.Models
 
         public Task<SaveResult> AddPostAsync(string message)
         {
+            if (ContextFactory == null)
+                throw new ContextFactoryNullException("Person", "AddPostAsync");
+
             var post = ContextFactory.NewModel<Post>();
+
             post.Message = message;
             post.OwnerId = this.Id;
             return post.SaveAsync();
         }
 
         #endregion
-
 
         public Person() 
         {
@@ -145,12 +146,12 @@ namespace Test.Lib.Models
 
         #region Save
 
-        public virtual async Task<SaveResult> SaveAsync()
+        public new virtual async Task<SaveResult> SaveAsync()
         {
             return await SaveAsync<Person>();
         }
 
-        public override async Task<SaveResult> SaveAsync<T>()
+        public override async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null)
         {
             return await base.SaveAsync<T>();
         }

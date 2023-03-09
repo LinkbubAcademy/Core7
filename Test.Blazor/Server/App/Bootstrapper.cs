@@ -28,6 +28,7 @@ namespace Test.Blazor.Server.App
                                                                     sp.GetRequiredService<NavigationManager>().BaseUri,
                                                                     sp.GetService<IContextFactory>()));
 
+            Builder.Services.AddTransient<IWorkflowManager>(sp => new WorkflowManager());
             Builder.Services.AddSingleton<IContextFactory>(sp => new ContextFactory(sp) { IsServerMode = true });
 
             RegisterDbSets();

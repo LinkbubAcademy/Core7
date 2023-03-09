@@ -1,4 +1,5 @@
 ﻿using Common.Lib.Core;
+using Common.Lib.Core.Context;
 using Common.Lib.Core.Tracking;
 using Common.Lib.Infrastructure.Actions;
 
@@ -152,10 +153,11 @@ namespace Test.Lib.Models
             return await SaveAsync<Post>();
         }
 
-        public override async Task<SaveResult> SaveAsync<T>()
+        public override async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null)
         {
             return await base.SaveAsync<T>();
         }
+
         #endregion
 
     }

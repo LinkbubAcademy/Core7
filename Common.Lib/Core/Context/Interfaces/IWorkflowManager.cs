@@ -4,6 +4,5 @@
     {
         public Task SendNotificationsAsync(IEnumerable<Action> notificationAction);
 
-
     }
 }

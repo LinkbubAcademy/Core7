@@ -9,7 +9,7 @@ namespace Test.Blazor.Server.Context
     public class PostServerRepository : ServerRepository<Post>, IPostRepository
 
     {
-        public PostServerRepository(IDbSet<Post> dbSet) : base(dbSet)
+        public PostServerRepository(IDbSet<Post> dbSet, IWorkflowManager wfm) : base(dbSet, wfm)
         {
         }
 
