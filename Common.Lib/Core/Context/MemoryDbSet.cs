@@ -2,6 +2,7 @@
 using Common.Lib.Infrastructure.Actions;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using System.Reflection.PortableExecutable;
 
 namespace Common.Lib.Core.Context
 {
@@ -45,8 +46,20 @@ namespace Common.Lib.Core.Context
 
         public Task<QueryResult<T>> FindAsync(Guid id)
         {
-            throw new NotImplementedException();
+            if (Items.TryGetValue(id, out var result))
+                return Task.FromResult(new QueryResult<T>()
+                {
+                    IsSuccess = true,
+                    Value = result
+                });
+
+            return Task.FromResult(new QueryResult<T>()
+            { 
+                IsSuccess = false, 
+                Value = null 
+            });
         }
+
         #endregion
 
         #region Get Single Value
@@ -320,8 +333,57 @@ namespace Common.Lib.Core.Context
         #region Get Collection of Values
         public Task<QueryResult<List<TProperty>>> GetValuesAsync<TProperty>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.AsQueryable() ?? 
+                throw new ArgumentNullException("source cannot be null");
+
             var output = new QueryResult<List<TProperty>>();
+
+            foreach (var tuple in Operations)
+            {
+                var queryType = tuple.Item1;
+                var expBuilder = tuple.Item2;
+                var vType = tuple.Item3;
+
+                var condition = GetCondition(expBuilder);
+                IPropertySelector propSel = null;
+
+                switch (queryType)
+                {
+                    case QueryTypes.Where:
+                        ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
+                        break;
+                    case QueryTypes.OrderBy:
+                        propSel = CastToPropertySelecter(expBuilder);
+                        ProcessOrderBy(ref source, propSel, propSel.PropertyType);
+                        break;
+
+                    case QueryTypes.OrderByDesc:
+                        propSel = CastToPropertySelecter(expBuilder);
+                        ProcessOrderByDesc(ref source, propSel, propSel.PropertyType);
+                        break;
+
+                    case QueryTypes.Select:
+                        propSel = CastToPropertySelecter(expBuilder);
+                        output = new QueryResult<List<TProperty>>(ProcessSelect<TProperty>(
+                                            ref source, propSel, propSel.PropertyType)
+                                        .ToList());
+                        break;
+
+                    default:
+                        continue;
+                }
+            }
+
+            return Task.FromResult(output);
+        }
+
+        #endregion
+
+        #region Get Entities
+        public Task<QueryResult<List<T>>> GetEntitiesAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
+            var source = Items.Values.AsQueryable();
+            var output = new QueryResult<List<T>>();
 
             foreach (var tuple in Operations)
             {
@@ -343,34 +405,69 @@ namespace Common.Lib.Core.Context
                         ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
                         break;
 
-                    case QueryTypes.Select:
-                        output = new QueryResult<List<TProperty>>
-                                        (ProcessSelect<TProperty>(
-                                            ref source,
-                                            expBuilder as IPropertySelector<List<TProperty>>, vType)
-                                        .ToList());
-                        break;
-
                     default:
                         continue;
                 }
             }
 
+            output.IsSuccess = true;
+            output.Value = source.ToList();
+
             return Task.FromResult(output);
         }
 
-        #endregion
-
-        #region Get Entities
-        public Task<QueryResult<List<T>>> GetEntitiesAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
-        {
-            throw new NotImplementedException();
-        }
-
-
         public Task<QueryResult<T>> GetEntityAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            throw new NotImplementedException();
+            var source = Items.Values.AsQueryable();
+            var output = new QueryResult<T>();
+
+            foreach (var tuple in Operations)
+            {
+                var queryType = tuple.Item1;
+                var expBuilder = tuple.Item2;
+                var vType = tuple.Item3;
+
+                var condition = GetCondition(expBuilder);
+
+                switch (queryType)
+                {
+                    case QueryTypes.Where:
+                        ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
+                        break;
+                    case QueryTypes.OrderBy:
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        break;
+                    case QueryTypes.OrderByDesc:
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        break;
+
+                    case QueryTypes.FirstOrDefault:
+                        output.IsSuccess = true;
+                        output.Value = condition == null ? 
+                                            source.FirstOrDefault() : 
+                                            source.FirstOrDefault(condition);
+
+                        return Task.FromResult(output);
+
+                    case QueryTypes.LastOrDefault:
+                        output.IsSuccess = true;
+                        output.Value = condition == null ?
+                                            source.FirstOrDefault() :
+                                            source.FirstOrDefault(condition);
+
+                        return Task.FromResult(output);
+
+                    default:
+                        
+                        continue;
+                }
+            }
+
+
+            output.IsSuccess = false;
+            output.Message = "Querying an entity must end with single entity query (eg. FirstOrDefault)";
+
+            return Task.FromResult(output);
         }
 
 
@@ -537,6 +634,16 @@ namespace Common.Lib.Core.Context
                                 (x => true);
 
             return condition;
+        }
+
+        IPropertySelector CastToPropertySelecter(IExpressionBuilder expBuilder)
+        {
+            var propSel = expBuilder as IPropertySelector;
+
+            if (propSel != null)
+                return propSel;
+
+            throw new Exception("builder is not a IPropertySelector");
         }
     }
 }

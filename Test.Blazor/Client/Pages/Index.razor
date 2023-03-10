@@ -147,7 +147,10 @@
         //Assert
         //await TestCreateUsersAsync();
 
+        ConsoleWriteLine("Test 3.1");
+
         using var repoUsers = IContextFactory.GetRepository<Person>();
+        ConsoleWriteLine("Test 3.2");
 
         var qr1 = await repoUsers.MaxAsync(UserAccessLevel.Property);
         ConsoleWriteLine($"Max Access Level(2):{qr1.Value}");

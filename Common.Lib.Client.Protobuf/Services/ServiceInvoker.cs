@@ -84,6 +84,7 @@ namespace Common.Lib.Client.Services
                                             x => ContextFactory.ReconstructEntity(x.Value))
             };
         }
+        
         #region Get Value
         public async Task<QueryResult<bool>> QueryRepositoryForBool(IQueryRepositoryParamsCarrier paramsCarrier)
         {
@@ -116,7 +117,7 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
-            var result = await Channel.QueryRepositoryForBoolAsync((QueryRepositoryParamsCarrier)paramsCarrier);
+            var result = await Channel.QueryRepositoryForIntAsync((QueryRepositoryParamsCarrier)paramsCarrier);
 
             var parseFunc = EntityInfo.GetParseFunc<int>();
 
