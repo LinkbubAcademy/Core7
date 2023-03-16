@@ -27,9 +27,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Blazor.Client", "Test.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Protobuf", "Protobuf", "{EFB96885-F53C-4825-BAE8-EF44378A17EC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{F676FFDB-1187-4EB9-9C76-B5B0F28C185B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blog", "Blog", "{F676FFDB-1187-4EB9-9C76-B5B0F28C185B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Blazor.Maui", "Test.Blazor.Maui\Test.Blazor.Maui.csproj", "{B6A28ED2-1797-41F3-9E02-C037F06E4FCB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Blazor.Maui", "Test.Blazor.Maui\Test.Blazor.Maui.csproj", "{B6A28ED2-1797-41F3-9E02-C037F06E4FCB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

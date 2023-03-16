@@ -3,6 +3,7 @@ using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Tracking;
 using Common.Lib.Infrastructure.Actions;
+using Test.Lib.Authentication;
 
 namespace Test.Lib.Models
 {
@@ -155,6 +156,7 @@ namespace Test.Lib.Models
         {
             return await base.SaveAsync<T>();
         }
+
         #endregion
     }
 
@@ -189,5 +191,66 @@ namespace Test.Lib.Models
         public const int Name = UserMetadata.Last + 1;
 
         public const int Last = Name;
+    }
+
+    public enum PersonActions
+    {
+        Create = 0,
+        Read = 1,
+        Update = 2,
+        Delete = 3
+    }
+
+    public class PersonActionsRolesMaps
+    {
+        Dictionary<PersonActions, Dictionary<TestRoles, RolActionMap>> RolActionMaps { get; set; } = new();
+
+        public PersonActionsRolesMaps()
+        {
+            RegisterCreate();
+            RegisterUpdate();
+
+            Person.AddScopes(RolActionMaps);
+        }
+
+        void RegisterCreate()
+        {
+            var systemPermissions = new RolActionMap(TestRolesHandler.System)
+            {
+                AllowAll = true
+            };
+
+            var writerPermissions = new RolActionMap(TestRolesHandler.Writer);
+            var editorPermissions = new RolActionMap(TestRolesHandler.Editor);
+            var readerPermissions = new RolActionMap(TestRolesHandler.Reader);
+
+            var maps = new Dictionary<TestRoles, RolActionMap>();
+            RolActionMaps.Add(PersonActions.Create, maps);
+
+            maps.Add(TestRoles.System, systemPermissions);
+            maps.Add(TestRoles.Writer, writerPermissions);
+            maps.Add(TestRoles.Editor, editorPermissions);
+            maps.Add(TestRoles.Reader, readerPermissions);
+        }
+
+        void RegisterUpdate()
+        {
+            var systemPermissions = new RolActionMap(TestRolesHandler.System)
+            {
+                AllowAll = true
+            };
+
+            var writerPermissions = new RolActionMap(TestRolesHandler.Writer);
+            var editorPermissions = new RolActionMap(TestRolesHandler.Editor);
+            var readerPermissions = new RolActionMap(TestRolesHandler.Reader);
+
+            var maps = new Dictionary<TestRoles, RolActionMap>();
+            RolActionMaps.Add(PersonActions.Update, maps);
+
+            maps.Add(TestRoles.System, systemPermissions);
+            maps.Add(TestRoles.Writer, writerPermissions);
+            maps.Add(TestRoles.Editor, editorPermissions);
+            maps.Add(TestRoles.Reader, readerPermissions);
+        }
     }
 }

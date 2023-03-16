@@ -208,7 +208,7 @@ namespace Common.Lib.Core
             }
             else
             {
-                var updateErrors = await ValidateNew();
+                var updateErrors = await ValidateUpdate();
                 if (updateErrors == null)
                 {
                     var updateResult = await repo.UpdateAsync(entity);
@@ -241,17 +241,17 @@ namespace Common.Lib.Core
             { EntityMetadata.UpdatedOn, ValueTypes.DateTime }
         };
 
-        public static ModelRolesMap EntityRolesMap
+        public static RolActionMap EntityRolesMap
         {
             get
             {
-                return _entityRolesMap ??= new ModelRolesMap();
+                return _entityRolesMap;
             }
         }
-        static ModelRolesMap? _entityRolesMap;
+        static RolActionMap? _entityRolesMap;
 
 
-        public virtual ModelRolesMap GetModelRolesMap()
+        public virtual RolActionMap GetModelRolesMap()
         {
             return EntityRolesMap;
         }

@@ -1,12 +1,16 @@
-﻿using Common.Lib.Authentication;
-using Common.Lib.Core.Context;
-using Common.Lib.Core.Expressions;
+﻿using Common.Lib.Core.Context;
 using Common.Lib.Infrastructure.Actions;
 
 namespace Common.Lib.Core
 {
     public partial class WorkflowEntity : Entity
     {
+        #region Properties
+
+        public string StatusCode { get; set; } = string.Empty;
+
+        #endregion
+
         #region Save
 
         public override async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null)
@@ -19,7 +23,7 @@ namespace Common.Lib.Core
 
     public partial class WorkflowEntity 
     {
-        #region metadata maps
+        #region Metadata Maps
 
         public static new Dictionary<int, ValueTypes> MetadataMaps 
         {
