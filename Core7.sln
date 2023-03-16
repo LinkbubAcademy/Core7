@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Blog", "Blog", "{F676FFDB-1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test.Blazor.Maui", "Test.Blazor.Maui\Test.Blazor.Maui.csproj", "{B6A28ED2-1797-41F3-9E02-C037F06E4FCB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IntegrationTesting", "IntegrationTesting", "{363C483A-D03B-4AD8-B54E-735F68A0C4AC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
