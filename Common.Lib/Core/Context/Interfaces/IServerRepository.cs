@@ -5,6 +5,7 @@ namespace Common.Lib.Core.Context
 {
     public interface IServerRepository : IRepository
     {
+        Task<QueryResult<Entity>> FindAsync(Guid id);
         IServerRepository DeclareChildrenPolicy(int nestingLevel);
         Task<QueryResult<Entity>> ExecuteGetEntityRequest(IEnumerable<IQueryOperationInfo> operations);
         Task<QueryResult<List<Entity>>> ExecuteGetEntitiesRequest(IEnumerable<IQueryOperationInfo> operations);

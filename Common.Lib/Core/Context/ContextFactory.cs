@@ -5,6 +5,7 @@ namespace Common.Lib.Core.Context
 {
     public class ContextFactory : IContextFactory
     {
+        public string RepositoryAssemblyName { get; set; } = string.Empty;
         public bool IsServerMode { get; set; }
 
         protected readonly IServiceProvider ServiceProvider;
@@ -19,13 +20,22 @@ namespace Common.Lib.Core.Context
             var output = (IUoWRepository<T>)ServiceProvider.GetService(typeof(IUoWRepository<T>));
             output.UnitOfWork = uow;
 
-            return output;
-                                 
+            return output;                                 
+        }
+
+        public T Resolve<T>()
+        {
+            var output = ServiceProvider.GetService(typeof(T));
+
+            if (output == null)
+                throw new ArgumentException($"{typeof(T).FullName} is not registered in the ContextFactory");
+
+            return (T)output;
         }
 
         public IServerRepository GetRepository(string modelTypeName)
         {
-            var repoTypeName = $"Common.Lib.Core.Context.IRepository`1[[{modelTypeName}, Test.Lib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]";
+            var repoTypeName = $"Common.Lib.Core.Context.IRepository`1[[{modelTypeName}, {RepositoryAssemblyName}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]";
 
             var output = ServiceProvider.GetService(Type.GetType(repoTypeName));
             return (IServerRepository)output;
@@ -49,7 +59,7 @@ namespace Common.Lib.Core.Context
             entity.Id = entityInfo.EntityId;
             entity.ContextFactory = this;
 
-            var changes = entityInfo.GetChangeUnits().OrderBy(x => x.MetdataId).ToList();
+            var changes = entityInfo.GetChangeUnits().OrderBy(x => x.MetadataId).ToList();
             entity.ApplyChanges(changes);
             return entity;
         }
@@ -59,9 +69,10 @@ namespace Common.Lib.Core.Context
             return (TEntity)ReconstructEntity(entityInfo);
         }
 
-        public ContextFactory(IServiceProvider serviceProvider)
+        public ContextFactory(IServiceProvider serviceProvider, string repositoryAssemblyName)
         {
             ServiceProvider = serviceProvider;
+            RepositoryAssemblyName = repositoryAssemblyName;
         }
     }
 }

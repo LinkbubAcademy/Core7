@@ -6,4 +6,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.deps.json&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.dll&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.pdb&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;" />
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
+  </ItemGroup>
+
 </Project>

@@ -4,7 +4,8 @@ option csharp_namespace = "Common.Lib.Services.Protobuf";
 
 service CoreServices
 {
-  rpc RequestAddNewEntity (SaveEntityParamsCarrier) returns (SaveResult);
+  rpc RequestAddNewEntity (SaveEntityParamsCarrier) returns (SaveResult);  
+  rpc RequestParametricAction (ParametricActionParamsCarrier) returns (ActionResult);
 
   rpc QueryRepositoryForEntity(QueryRepositoryParamsCarrier) returns (QueryEntityResult);
   rpc QueryRepositoryForEntities(QueryRepositoryParamsCarrier) returns (QueryEntitiesResult);
@@ -35,6 +36,15 @@ message QueryRepositoryParamsCarrier
 	string RepositoryType = 2;
 	int32 NestingLevel = 3;
 	repeated QueryOperationInfo sOperations = 4;	
+}
+
+message ParametricActionParamsCarrier
+{
+	ParamsCarrierInfo ServiceInfo = 1;
+	string RepositoryType = 2;
+	string sEntityId = 3;
+	string ParametricActionName = 4;
+	repeated string sParams = 5;	
 }
 
 message QueryOperationInfo
@@ -75,8 +85,7 @@ message SaveResult
 {	
   bool IsSuccess = 1;
   string Message = 2;
-  repeated string sErrors = 3;
-}
+  repeated string sErrors = 3;}
 
 message QueryEntityResult
 {

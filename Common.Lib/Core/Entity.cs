@@ -2,6 +2,9 @@
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Tracking;
 using Common.Lib.Infrastructure.Actions;
+using Common.Lib.Services.ParamsCarriers;
+using Common.Lib.Services;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Core
 {
@@ -52,6 +55,15 @@ namespace Common.Lib.Core
         }
 
         #region Clone
+
+        /// <summary>
+        /// Base for calling Clone more simple
+        /// </summary>
+        /// <returns>the cloned entity</returns>
+        public Entity Clone()
+        {
+            return Clone<Entity>();
+        }
 
         /// <summary>
         /// Method used to reproduce the entity, including itself
@@ -127,11 +139,11 @@ namespace Common.Lib.Core
         /// <param name="changes">the list of changes to apply</param>
         public virtual List<ChangeUnit> ApplyChanges(List<ChangeUnit> changes)
         {
-            changes = changes.OrderBy(x => x.MetdataId).ToList();
+            changes = changes.OrderBy(x => x.MetadataId).ToList();
 
             foreach (var change in changes)
             {
-                switch (change.MetdataId)
+                switch (change.MetadataId)
                 {
                     case EntityMetadata.Id:
                         Id = change.GetValueAsGuid();
@@ -143,11 +155,11 @@ namespace Common.Lib.Core
                         UpdatedOn = change.GetValueAsDateTime();
                         break;
                     default:
-                        return changes.Where(x => x.MetdataId > EntityMetadata.Last).ToList();
+                        return changes.Where(x => x.MetadataId > EntityMetadata.Last).ToList();
                 }
             }
 
-            return changes.Where(x => x.MetdataId > EntityMetadata.Last).ToList();
+            return changes.Where(x => x.MetadataId > EntityMetadata.Last).ToList();
         }
 
         #endregion
@@ -163,6 +175,11 @@ namespace Common.Lib.Core
         {
             return await Task.FromResult(default(IEnumerable<string>));
         }
+        public virtual async Task<IEnumerable<string>?> ValidateDelete()
+        {
+            return await Task.FromResult(default(IEnumerable<string>));
+        }
+
 
         public virtual void Save(IUnitOfWork uow)
         {
@@ -227,6 +244,85 @@ namespace Common.Lib.Core
             return output;
         }
 
+        public virtual async Task<DeleteResult> DeleteAsync<T>(IUnitOfWork? uow = null) where T : Entity, new()
+        {           
+
+            if (ContextFactory == null)
+                throw new ContextFactoryNullException("Entity", "DeleteAsync");
+
+            if (uow != null && !ContextFactory.IsServerMode)
+                throw new ApplicationException("You cannot use DeleteAsync with UnitOfWork in client mode. Use Save instead");
+
+            using var repo = ContextFactory.GetRepository<T>(uow) ??
+                throw new RepositoryNotRegisteredException(typeof(T));
+
+            var output = new DeleteResult();
+
+            var deleteErrors = await ValidateDelete();
+            if (deleteErrors == null)
+            {
+                var deleteResult = await repo.DeleteAsync(this.Id);
+                output.IsSuccess = deleteResult.IsSuccess;
+
+                if (!deleteResult.IsSuccess)
+                    output.AddError(deleteResult.Message);
+            }
+            else
+            {
+                output.IsSuccess = false;
+                deleteErrors.DoForeach(x => output.AddError(x));
+            }
+            
+
+            return output;
+        }
+
+        #endregion
+
+        #region Parametric actions
+
+        public virtual async Task<IActionResult?> RequestParametricActionAsync(string repoType, string actionName, object[] actionParams)
+        {
+            if (ContextFactory == null)
+                throw new InvalidOperationException("you must get a model through the propel channels, ContextFactory is missing");
+
+            if (ContextFactory.IsServerMode)
+                return null;
+
+            var svcInvoker = ContextFactory.Resolve<IServiceInvoker>();
+
+            var paramsCarrierFactory = ContextFactory.Resolve<IParamsCarrierFactory>();
+
+            var userId = Guid.NewGuid(); //todo: implement user auth
+            var userToken = string.Empty;//todo: implement user auth
+            var paramsCarrier = paramsCarrierFactory.CreateParametricActionParams(
+                                                            userId,
+                                                            userToken,
+                                                            DateTime.Now,
+                                                            repoType,
+                                                            this.Id,
+                                                            actionName,
+                                                            actionParams);
+
+            var result = await svcInvoker.RequestParametricActionAsync(paramsCarrier);
+            return result;
+        }
+
+        public virtual async Task<IActionResult?> ProcessActionAsync(string actionId, object[] actionParams)
+        {
+            return null; 
+        }
+        
+        public T FindEntity<T>(Guid id) where T : Entity, new()
+        {
+            if (ContextFactory == null || !ContextFactory.IsServerMode)
+                throw new InvalidOperationException("Wrong entity context");
+
+            using var repo = ContextFactory.GetRepository<T>();
+            var qr = repo.FindAsync(id).Result;
+
+            return qr.IsSuccess ? qr.Value : null;
+        }
         #endregion
     }
 
@@ -265,5 +361,130 @@ namespace Common.Lib.Core
         public const int CreatedOn = 2;
         public const int UpdatedOn = 3;
         public const int Last = UpdatedOn;
+
+        public static void RegisterParametricActions()
+        {
+
+        }
+
+        public static Dictionary<string, Dictionary<int, Func<object?, string>>> ParamActionsParamsSerializer { get; set; } = new();
+
+        public static Dictionary<string, Dictionary<int, Func<string, object?>>> ParamActionsParamsDeserializer { get; set; } = new();
+
+        public static string[] SerializeParamActionValues(string paramActionId, object[] values)
+        {
+            var paramsConverter = ParamActionsParamsSerializer[paramActionId];
+
+            var output = new string[values.Length];
+
+            for (var i = 0; i < values.Length; i++)
+                output[i] = paramsConverter[i](values[i]);
+
+            return output;
+        }
+
+        public static object[] DeserializeParamActionValues(string paramActionId, string[] serializedValues)
+        {
+            var paramsConverter = ParamActionsParamsDeserializer[paramActionId];
+
+            var output = new object[serializedValues.Length];
+
+            for (var i = 0; i < serializedValues.Length; i++)
+                output[i] = paramsConverter[i](serializedValues[i]);
+
+            return output;
+        }
+
+        public static string SerializeBool(object? b)
+        {
+            if (b == null)
+                return "false";
+
+            return (bool)b ? "true" : "false";            
+        }
+
+        public static string SerializeGuid(object? id)
+        {
+            return id == null ? 
+                string.Empty : 
+                id.ToString();
+        }
+
+        public static string SerializeDouble(object? d)
+        {
+            if (d == null)
+                return "0.0";
+
+            return ((double)d).ToString();
+        }
+        public static string SerializeInt(object? i)
+        {
+            if (i == null)
+                return "0";
+
+            return ((int)i).ToString();
+        }
+        public static string SerializeString(object? s)
+        {
+            if (s == null)
+                return string.Empty;
+
+            return ((string)s);
+        }
+        public static string SerializeDateTime(object? dt)
+        {
+            if (dt == null)
+                return new DateTime().Ticks.ToString();
+
+            return ((DateTime)dt).Ticks.ToString();
+        }
+
+        public static bool DeserializeBool(string? b)
+        {
+            if (b == null || b == "false")
+                return false;
+
+            return true;
+        }
+
+        public static double DeserializeDouble(string d)
+        {
+            if (d == null || d == "0.0")
+                return 0.0;
+
+            return double.Parse(d);
+        }
+        public static int DeserializeInt(string i)
+        {
+            if (i == null || i == "0")
+                return 0;
+
+            return int.Parse(i);
+        }
+        public static string DeserializeString(string s)
+        {
+            if (s == null)
+                return string.Empty;
+
+            return s;
+        }
+        public static DateTime DeserializeDateTime(string dt)
+        {
+            if (dt == null || dt == "0")
+                return new DateTime();
+
+            return new DateTime().AddTicks(long.Parse(dt));
+        }
+
+        public static T DeserializeEnum<T>(string s) where T : struct, IConvertible
+        {
+            var i = int.Parse(s);
+            return (T)(object)i;
+        }
+
+        public static Guid DeserializeGuid(string s)
+        {
+            return Guid.Parse(s);
+        }
     }
 }

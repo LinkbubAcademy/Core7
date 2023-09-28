@@ -18,7 +18,7 @@ namespace Common.Lib.Core.Context
         Task<QueryResult<List<TValue>>> DistinctAsync<TValue>(IPropertySelector<TValue> propertySelector);
 
         #region Logical operations
-        
+
         Task<QueryResult<bool>> AnyAsync(params IQueryExpression[] expressions);
         Task<QueryResult<bool>> AllAsync(params IQueryExpression[] expressions);
         Task<QueryResult<bool>> NoneAsync(params IQueryExpression[] expressions);

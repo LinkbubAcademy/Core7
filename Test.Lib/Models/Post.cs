@@ -19,15 +19,9 @@ namespace Test.Lib.Models
         {
             get
             {
-                var repo = ContextFactory?.GetRepository<Person>();
+                using var repo = ContextFactory?.GetRepository<Person>();
                 if (repo == null)
-                    return Task.FromResult(new QueryResult<Person>()
-                    {
-                        IsSuccess = false,
-                        Message = ContextFactory == null ?
-                                        "ContextFactory is null. Use ContextFactory to create a model" :
-                                        "Person Repository is not injected"
-                    });
+                    return IContextFactory.GetError<Person>(ContextFactory == null);
 
                 return repo.FindAsync(OwnerId);
             }
@@ -125,7 +119,7 @@ namespace Test.Lib.Models
 
             foreach (var change in remainingChanges)
             {
-                switch (change.MetdataId)
+                switch (change.MetadataId)
                 {
                     case PostMetadata.Message:
                         Message = change.GetValueAsString();
@@ -136,15 +130,14 @@ namespace Test.Lib.Models
                         break;
 
                     default:
-                        return remainingChanges.Where(x => x.MetdataId > PostMetadata.Last).ToList();
+                        return remainingChanges.Where(x => x.MetadataId > PostMetadata.Last).ToList();
                 }
             }
 
-            return remainingChanges.Where(x => x.MetdataId > PostMetadata.Last).ToList();
+            return remainingChanges.Where(x => x.MetadataId > PostMetadata.Last).ToList();
         }
 
         #endregion
-
 
         #region Save
 

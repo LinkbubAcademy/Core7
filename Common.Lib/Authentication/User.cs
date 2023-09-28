@@ -25,7 +25,7 @@ namespace Common.Lib.Authentication
         /// to be compared to get changes
         /// </summary>
         /// <returns>User</returns>
-        public User Clone()
+        public new User Clone()
         {
             return Clone<User>();
         }
@@ -93,7 +93,7 @@ namespace Common.Lib.Authentication
 
             foreach (var change in remainingChanges)
             {
-                switch (change.MetdataId)
+                switch (change.MetadataId)
                 {
                     case UserMetadata.Email:
                         Email = change.GetValueAsString();
@@ -105,27 +105,35 @@ namespace Common.Lib.Authentication
                         AccessLevel = change.GetValueAsInt();
                         break;
                     default:
-                        return remainingChanges.Where(x => x.MetdataId > UserMetadata.Last).ToList();
+                        return remainingChanges.Where(x => x.MetadataId > UserMetadata.Last).ToList();
                 }
             }
-            return remainingChanges.Where(x => x.MetdataId > UserMetadata.Last).ToList();
+            return remainingChanges.Where(x => x.MetadataId > UserMetadata.Last).ToList();
         }
 
         #endregion
 
-        #region Save
+        #region Save & Delete
 
         public virtual async Task<SaveResult> SaveAsync()
         {
-            return await SaveAsync<User>();
+            return await this.SaveAsync<User>();
         }
 
         public override async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null) 
         {
-            return await base.SaveAsync<T>();
+            return await base.SaveAsync<T>(uow);
+        }        
+
+        public virtual async Task<DeleteResult> DeleteAsync()
+        {
+            return await this.DeleteAsync<User>();
         }
 
-        
+        public override async Task<DeleteResult> DeleteAsync<T>(IUnitOfWork? uow = null)
+        {
+            return await base.DeleteAsync<T>(uow);
+        }
 
         #endregion
     }
@@ -166,5 +174,10 @@ namespace Common.Lib.Authentication
         public const int AccessLevel = Password + 1;
 
         public const int Last = AccessLevel;
+
+        public static void RegisterParametricActions()
+        {
+
+        }
     }
 }

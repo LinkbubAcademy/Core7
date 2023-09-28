@@ -1,12 +1,4 @@
-using Common.Lib.Authentication;
-using Common.Lib.Client.Services;
-using Common.Lib.Core.Context;
-using Common.Lib.Core.Metadata;
-using Common.Lib.Server.Context;
 using Common.Lib.Server.Protobuf;
-using Common.Lib.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.ResponseCompression;
 using Test.Blazor.Server.App;
 using Test.Lib.Metadata;
 

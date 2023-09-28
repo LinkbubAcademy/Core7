@@ -16,5 +16,14 @@ namespace Common.Lib.Services.ParamsCarriers
                                             string repoTypeName,
                                             List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations,
                                             int nestingLevel);
+
+        IParametricActionParamsCarrier CreateParametricActionParams(
+                                                Guid userId,
+                                                string userToken,
+                                                DateTime actionTime,
+                                                string repoTypeName,
+                                                Guid entityId,
+                                                string paramActionName,
+                                                object[] values);
     }
 }

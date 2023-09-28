@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Common.Lib\Common.Lib.csproj" />
   </ItemGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.deps.json&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.dll&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.pdb&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;" />
+  </Target>
+
 </Project>

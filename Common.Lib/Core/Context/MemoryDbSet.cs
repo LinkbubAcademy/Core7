@@ -10,18 +10,29 @@ namespace Common.Lib.Core.Context
     {
         public int NestingLevel { get; set; }
 
-        IContextFactory ContextFactory { get; set; }
 
         List<string> Errors { get; set; } = new List<string>();
 
         static ConcurrentDictionary<Guid, T> Items = new ConcurrentDictionary<Guid, T>();
 
-        public MemoryDbSet(IContextFactory contextFactory)
+        public MemoryDbSet()
         {
-            ContextFactory = contextFactory;
         }
 
         #region CRUD
+
+        public ActionResult Add(T entity)
+        {
+            var output = new ActionResult();
+
+            if (Items.TryAdd(entity.Id, entity))
+            {
+                output.IsSuccess = true;
+            }
+
+            return output;
+        }
+
         public Task<ActionResult> AddAsync(T entity)
         {
             var output = new QueryResult<T>();
@@ -44,6 +55,43 @@ namespace Common.Lib.Core.Context
             throw new NotImplementedException();
         }
 
+        public ActionResult Delete(Guid id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public QueryResult<T> Find(Guid id)
+        {
+            if (Items.TryGetValue(id, out var result))
+                return new QueryResult<T>()
+                {
+                    IsSuccess = true,
+                    Value = result
+                };
+
+            return new QueryResult<T>()
+            {
+                IsSuccess = false,
+                Value = null
+            };
+        }
+
+        public QueryResult<T1> Find<T1>(Guid id) where T1 : T
+        {
+            if (Items.TryGetValue(id, out var result))
+                return new QueryResult<T1>()
+                {
+                    IsSuccess = true,
+                    Value = result as T1
+                };
+
+            return new QueryResult<T1>()
+            {
+                IsSuccess = false,
+                Value = null
+            };
+        }
+
         public Task<QueryResult<T>> FindAsync(Guid id)
         {
             if (Items.TryGetValue(id, out var result))
@@ -60,12 +108,53 @@ namespace Common.Lib.Core.Context
             });
         }
 
+        public Task<QueryResult<T1>> FindAsync<T1>(Guid id) where T1 : Entity, new()
+        {
+            if (Items.TryGetValue(id, out var result))
+            {
+                if (result is T1)
+                    return Task.FromResult(new QueryResult<T1>()
+                    {
+                        IsSuccess = true,
+                        Value = result as T1
+                    });
+               
+                var e1 = new QueryResult<T1>()
+                {
+                    IsSuccess = false
+                };
+
+                e1.AddError($"entity with id {id} is not {typeof(T1).FullName}");
+                return Task.FromResult(e1);
+
+            }
+
+            var e2 = new QueryResult<T1>()
+            {
+                IsSuccess = false
+            };
+
+            e2.AddError($"not found entity with id {id}");
+            return Task.FromResult(e2);
+        }
+
         #endregion
 
         #region Get Single Value
+        public Task<QueryResult<bool>> GetBoolValueAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
+            return GetBoolValueAsync(source, Operations);
+        }
+
         public Task<QueryResult<bool>> GetBoolValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<T>().AsQueryable();
+            return GetBoolValueAsync(source, Operations);
+        }
+
+        Task<QueryResult<bool>> GetBoolValueAsync(IQueryable<T> source, List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
             var output = new QueryResult<bool>();
 
             foreach (var tuple in Operations)
@@ -108,9 +197,22 @@ namespace Common.Lib.Core.Context
 
             return Task.FromResult(output);
         }
+
+
+        public Task<QueryResult<int>> GetIntValueAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
+            return GetIntValueAsync(source, Operations);
+        }
+
         public Task<QueryResult<int>> GetIntValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<T>().AsQueryable();
+            return GetIntValueAsync(source, Operations);
+        }
+
+        Task<QueryResult<int>> GetIntValueAsync(IQueryable<T> source, List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
             var output = new QueryResult<int>();
 
             foreach (var tuple in Operations)
@@ -158,13 +260,27 @@ namespace Common.Lib.Core.Context
             return Task.FromResult(output);
         }
 
+
         public Task<QueryResult<byte[]>> GetBytesValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
             throw new NotImplementedException();
         }
+        
+        
+        public Task<QueryResult<DateTime>> GetDateTimeValueAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
+            return GetDateTimeValueAsync(source, Operations);
+        }
+
         public Task<QueryResult<DateTime>> GetDateTimeValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<T>().AsQueryable();
+            return GetDateTimeValueAsync(source, Operations);
+        }
+
+        Task<QueryResult<DateTime>> GetDateTimeValueAsync(IQueryable<T> source, List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
             var output = new QueryResult<DateTime>();
 
             foreach (var tuple in Operations)
@@ -205,9 +321,22 @@ namespace Common.Lib.Core.Context
 
             return Task.FromResult(output);
         }
+
+
+        public Task<QueryResult<double>> GetDoubleValueAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
+            return GetDoubleValueAsync(source, Operations);
+        }
+
         public Task<QueryResult<double>> GetDoubleValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<T>().AsQueryable();
+            return GetDoubleValueAsync(source, Operations);
+        }
+
+        public Task<QueryResult<double>> GetDoubleValueAsync(IQueryable<T> source, List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
             var output = new QueryResult<double>();
 
             foreach (var tuple in Operations)
@@ -255,9 +384,21 @@ namespace Common.Lib.Core.Context
             return Task.FromResult(output);
         }
 
+        
+        public Task<QueryResult<Guid>> GetGuidValueAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
+            return GetGuidValueAsync(source, Operations);
+        }
+
         public Task<QueryResult<Guid>> GetGuidValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<T>().AsQueryable();
+            return GetGuidValueAsync(source, Operations);
+        }
+
+        Task<QueryResult<Guid>> GetGuidValueAsync(IQueryable<T> source, List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
             var output = new QueryResult<Guid>();
 
             foreach (var tuple in Operations)
@@ -291,9 +432,20 @@ namespace Common.Lib.Core.Context
             return Task.FromResult(output);
         }
 
+        public Task<QueryResult<string>> GetStringValueAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
+            return GetStringValueAsync(source, Operations);
+        }
+
         public Task<QueryResult<string>> GetStringValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<T>().AsQueryable();
+            return GetStringValueAsync(source, Operations);
+        }
+
+        Task<QueryResult<string>> GetStringValueAsync(IQueryable<T> source, List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
+        {
             var output = new QueryResult<string>();
 
             foreach (var tuple in Operations)
@@ -326,7 +478,6 @@ namespace Common.Lib.Core.Context
 
             return Task.FromResult(output);
         }
-
 
         #endregion
 
@@ -380,6 +531,106 @@ namespace Common.Lib.Core.Context
         #endregion
 
         #region Get Entities
+
+        public int CountItems<TOut>() where TOut : T
+        {
+            return Items.Values.OfType<TOut>().Count();
+        }
+
+        public Task<QueryResult<List<TOut>>> GetEntitiesAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations) where TOut : T
+        {
+            var source = Items.Values.AsQueryable();
+            var output = new QueryResult<List<TOut>>();
+
+            foreach (var tuple in Operations)
+            {
+                var queryType = tuple.Item1;
+                var expBuilder = tuple.Item2;
+                var vType = tuple.Item3;
+
+                var condition = GetCondition(expBuilder);
+
+                switch (queryType)
+                {
+                    case QueryTypes.Where:
+                        ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
+                        break;
+                    case QueryTypes.OrderBy:
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        break;
+                    case QueryTypes.OrderByDesc:
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        break;
+
+                    default:
+                        continue;
+                }
+            }
+
+            output.IsSuccess = true;
+            output.Value = source.OfType<TOut>().ToList();
+
+            return Task.FromResult(output);
+        }
+
+        public Task<QueryResult<TOut>> GetEntityAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations) where TOut : T
+        {
+            var source = Items.Values.AsQueryable();
+            var output = new QueryResult<TOut>();
+
+            T e = null;
+
+            foreach (var tuple in Operations)
+            {
+                var queryType = tuple.Item1;
+                var expBuilder = tuple.Item2;
+                var vType = tuple.Item3;
+
+                var condition = GetCondition(expBuilder);
+
+                switch (queryType)
+                {
+                    case QueryTypes.Where:
+                        ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
+                        break;
+                    case QueryTypes.OrderBy:
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        break;
+                    case QueryTypes.OrderByDesc:
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        break;
+
+                    case QueryTypes.FirstOrDefault:
+                        output.IsSuccess = true;
+                        e = condition == null ?
+                                            source.OfType<TOut>().Cast<T>().FirstOrDefault() :
+                                            source.OfType<TOut>().Cast<T>().FirstOrDefault(condition);
+                        output.Value = e as TOut;
+                        return Task.FromResult(output);
+
+                    case QueryTypes.LastOrDefault:
+                        output.IsSuccess = true;
+                        e = condition == null ?
+                                            source.OfType<TOut>().Cast<T>().FirstOrDefault() :
+                                            source.OfType<TOut>().Cast<T>().FirstOrDefault(condition);
+
+                        output.Value = e as TOut;
+                        return Task.FromResult(output);
+
+                    default:
+
+                        continue;
+                }
+            }
+
+
+            output.IsSuccess = false;
+            output.Message = "Querying an entity must end with single entity query (eg. FirstOrDefault)";
+
+            return Task.FromResult(output);
+        }
+
+
         public Task<QueryResult<List<T>>> GetEntitiesAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
             var source = Items.Values.AsQueryable();

@@ -26,7 +26,7 @@
         {
             Changes.Add(propertyId, new ChangeUnit()
             {
-                MetdataId = propertyId,
+                MetadataId = propertyId,
                 Value = value
             });
         }

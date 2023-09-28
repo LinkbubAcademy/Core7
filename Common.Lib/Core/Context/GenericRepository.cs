@@ -71,6 +71,11 @@ namespace Common.Lib.Core.Context
 
         #region Retrieving operations
 
+        public async Task<QueryResult<List<T>>> ToListAsync()
+        {
+            return await Where(EmptyExpression.Create()).ToListAsync();
+        }
+
         public IQueryAggregator<T> Where(params IQueryExpression[] expressions)
         {
             var queryAggregator = new QueryAggregator<T>(DbSet);

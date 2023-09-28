@@ -2,6 +2,7 @@
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Expressions;
 using Common.Lib.Infrastructure.Actions;
+using System.Net.Quic;
 
 namespace Common.Lib.Server.Context
 {
@@ -132,6 +133,18 @@ namespace Common.Lib.Server.Context
                             ValueTypes.Bool));
             }
 
+            return output;
+        }
+
+        async Task<QueryResult<Entity>> IServerRepository.FindAsync(Guid id)
+        {
+            var qr = await DbSet.FindAsync(id);
+
+            var output = new QueryResult<Entity>()
+            {
+                IsSuccess = qr.IsSuccess,
+                Value = qr.Value
+            };
             return output;
         }
     }

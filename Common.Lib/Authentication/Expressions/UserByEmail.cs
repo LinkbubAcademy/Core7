@@ -8,7 +8,7 @@ namespace Common.Lib.Authentication
         public string Email { get; set; } = string.Empty;
 
         public override Expression<Func<TEntity, bool>>? CreateExpression<TEntity>()
-        {
+        {            
             if (typeof(User).IsAssignableFrom(typeof(TEntity)))
             {
                 switch (ComparisonType)
@@ -17,6 +17,11 @@ namespace Common.Lib.Authentication
                         return (x) => (x as User).Email == Email;
                     case ComparisonTypes.NotEqual:
                         return (x) => (x as User).Email != Email;
+                    case ComparisonTypes.Contains: 
+                        return (x) => (x as User).Email.Contains(Email);
+                    case ComparisonTypes.NotContains:
+                        return (x) => !(x as User).Email.Contains(Email);
+
                     default:
                         throw new ArgumentException($"OperationType:{ComparisonType.ToString()} is not valid for a string property");
                 }

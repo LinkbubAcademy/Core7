@@ -7,6 +7,8 @@
         Upper,
         UpperOrEqual,
         Lower,
-        LowerOrEqual
+        LowerOrEqual,
+        Contains,
+        NotContains
     }
 }

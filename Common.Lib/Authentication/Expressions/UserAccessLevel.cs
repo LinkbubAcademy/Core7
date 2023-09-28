@@ -105,5 +105,44 @@ namespace Common.Lib.Authentication
 
         #endregion
 
+        #region Lower
+
+        public static UserByAccessLevel LowerThan(int accessLevel,
+                                                LogicalOperationTypes opType = LogicalOperationTypes.And)
+        {
+            return UserByAccessLevel.Create(accessLevel, ComparisonTypes.Lower, opType);
+        }
+
+        public static UserByAccessLevel AndLowerThan(int accessLevel)
+        {
+            return UserByAccessLevel.Create(accessLevel, ComparisonTypes.Lower, LogicalOperationTypes.And);
+        }
+
+        public static UserByAccessLevel OrLowerThan(int accessLevel)
+        {
+            return UserByAccessLevel.Create(accessLevel, ComparisonTypes.Lower, LogicalOperationTypes.Or);
+        }
+
+        #endregion
+
+        #region LowerOrEqual
+
+        public static UserByAccessLevel LowerOrEqualTo(int accessLevel,
+                                                LogicalOperationTypes opType = LogicalOperationTypes.And)
+        {
+            return UserByAccessLevel.Create(accessLevel, ComparisonTypes.LowerOrEqual, opType);
+        }
+
+        public static UserByAccessLevel AndLowerOrEqualTo(int accessLevel)
+        {
+            return UserByAccessLevel.Create(accessLevel, ComparisonTypes.LowerOrEqual, LogicalOperationTypes.And);
+        }
+
+        public static UserByAccessLevel OrLowerOrEqualTo(int accessLevel)
+        {
+            return UserByAccessLevel.Create(accessLevel, ComparisonTypes.LowerOrEqual, LogicalOperationTypes.Or);
+        }
+
+        #endregion
     }
 }

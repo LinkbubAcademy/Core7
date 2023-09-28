@@ -36,7 +36,21 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
-            return await Channel.RequestAddNewEntityAsync((SaveEntityParamsCarrier)paramsCarrier);
+            var output = await Channel.RequestAddNewEntityAsync((SaveEntityParamsCarrier)paramsCarrier);
+            return output;
+        }
+
+        public async Task<IActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier)
+        {
+            if (paramsCarrier is not ParametricActionParamsCarrier)
+            {
+                throw new ArgumentNullException($"IParametricActionParamsCarrier paramsCarrier must come " +
+                    $"from the proper factory: " +
+                    $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
+            }
+
+            var output = await Channel.RequestParametricActionAsync((ParametricActionParamsCarrier)paramsCarrier);
+            return output;
         }
 
         public async Task<QueryResult<TEntity>> QueryRepositoryForEntity<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new()
@@ -235,6 +249,7 @@ namespace Common.Lib.Client.Services
                 Message = result.ActionResult.Message,
                 Value = result.SValue.Select(x => parseFunc(x)).ToList(),
             };
-        }        
+        }
+
     }
 }

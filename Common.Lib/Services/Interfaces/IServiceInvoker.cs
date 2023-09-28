@@ -8,6 +8,8 @@ namespace Common.Lib.Services
     public interface IServiceInvoker
     {
         string BaseUri { get; set; }
+
+        Task<IActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier);
         Task<IActionResult> AddNewEntityRequestAsync(ISaveEntityParamsCarrier paramsCarrier);
         Task<QueryResult<TEntity>> QueryRepositoryForEntity<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new();
         Task<QueryResult<List<TEntity>>> QueryRepositoryForEntities<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new();

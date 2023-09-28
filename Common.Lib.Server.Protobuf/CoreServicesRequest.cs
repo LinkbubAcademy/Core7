@@ -1,6 +1,5 @@
 ﻿using Common.Lib.Core;
 using Common.Lib.Core.Context;
-using Common.Lib.Core.Metadata;
 using Common.Lib.Services.Protobuf;
 using Grpc.Core;
 
@@ -27,6 +26,33 @@ namespace Common.Lib.Server.Protobuf
             return await Task.FromResult(new SaveResult(sr1));
         }
 
+        public override async Task<ActionResult> RequestParametricAction(ParametricActionParamsCarrier paramsCarrier, ServerCallContext context)
+        {
+            using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
+            var qrEntity = await repo.FindAsync(paramsCarrier.EntityId);
+
+            if (qrEntity.IsSuccess)
+            {
+                var ent = qrEntity.Value;
+
+                if (ent == null)
+                    return new ActionResult() { IsSuccess = false, Message = "Entity not found in repo" };
+                ent.ContextFactory = ContextFactory;
+
+                var paramActionId = paramsCarrier.RepositoryType + "." + paramsCarrier.ParametricActionName;
+                var values = EntityMetadata.DeserializeParamActionValues(paramActionId, paramsCarrier.SerializedValues);
+
+                var aResult = await ent.ProcessActionAsync(paramActionId, values);
+
+                ent.ContextFactory = null;
+
+                if (aResult == null)
+                    return await Task.FromResult(new ActionResult() { IsSuccess = false, Message="action not registered" });
+
+                return await Task.FromResult(new ActionResult() { IsSuccess = aResult.IsSuccess });
+            }
+            return await Task.FromResult(new ActionResult() { IsSuccess =false });
+        }
 
         public override async Task<QueryEntityResult> QueryRepositoryForEntity(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
@@ -129,7 +155,6 @@ namespace Common.Lib.Server.Protobuf
         }
 
         #endregion
-
 
         public override async Task<QueryValuesResult> QueryRepositoryForValues(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {

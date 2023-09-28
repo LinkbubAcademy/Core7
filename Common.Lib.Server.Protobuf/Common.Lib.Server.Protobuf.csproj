@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Core.Api" Version="2.52.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.55.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,5 +15,9 @@
     <ProjectReference Include="..\Common.Lib.Services.Protobuf\Common.Lib.Services.Protobuf.csproj" />
     <ProjectReference Include="..\Common.Lib\Common.Lib.csproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.Protobuf.deps.json&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.Protobuf.dll&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.Protobuf.pdb&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;" />
+  </Target>
 
 </Project>

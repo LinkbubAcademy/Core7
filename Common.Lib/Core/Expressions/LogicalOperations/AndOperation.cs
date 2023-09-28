@@ -1,6 +1,4 @@
-﻿using Common.Lib.Core.Expressions;
-
-namespace Common.Lib.Core.Expressions
+﻿namespace Common.Lib.Core.Expressions
 {
     public class AndOperation : IQueryExpression
     {

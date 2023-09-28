@@ -52,14 +52,14 @@ namespace Common.Lib.Services.Protobuf
             EntityModelType = entityInfo.EntityModelType;
 
             foreach (var change in entityInfo.GetChangeUnits())
-                SetValue(change.MetdataId, change.Value);
+                SetValue(change.MetadataId, change.Value);
         }
 
         public ChangeUnit GetChangeUnit(int metadataId)
         {
             var output = new ChangeUnit()
             {
-                MetdataId = metadataId,
+                MetadataId = metadataId,
                 Value = GetValue(metadataId)
             };
 
@@ -116,15 +116,17 @@ namespace Common.Lib.Services.Protobuf
                 case ValueTypes.Double:
                 case ValueTypes.Guid:
                 default:
-                    return value.ToString();
+                    if (value is System.Enum)
+                        return ((int)value).ToString();
+                    else
+                        return value.ToString();
 
                 case ValueTypes.DateTime:
                     return ((DateTime)value).Ticks.ToString();
-            }
-                    
+            }                    
         }
 
-        public static Func<string, TOut>  GetParseFunc<TOut>()
+        public static Func<string, TOut> GetParseFunc<TOut>()
         {
             var vtype = GetValueType(typeof(TOut));
             

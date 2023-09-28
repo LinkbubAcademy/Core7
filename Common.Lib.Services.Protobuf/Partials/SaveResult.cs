@@ -1,4 +1,5 @@
-﻿using Common.Lib.Infrastructure;
+﻿using Common.Lib.Core;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Services.Protobuf
 {
@@ -11,6 +12,7 @@ namespace Common.Lib.Services.Protobuf
             Errors = saveResult.Errors;
         }
 
+
         public IEnumerable<string> Errors
         {
             get
@@ -19,7 +21,7 @@ namespace Common.Lib.Services.Protobuf
             }
             set
             {
-                foreach (var error in value) 
+                foreach (var error in value)
                     sErrors_.Add(error);
             }
         }

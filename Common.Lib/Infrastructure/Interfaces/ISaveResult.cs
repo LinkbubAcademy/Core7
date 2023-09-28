@@ -2,6 +2,6 @@
 {
     public interface ISaveResult : IActionResult
     {
-        IEnumerable<string> Errors { get; }
     }
+
 }

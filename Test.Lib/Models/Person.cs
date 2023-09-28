@@ -83,7 +83,7 @@ namespace Test.Lib.Models
             if (nestingLevel > 0)
             {
                 var qr2 = (await PostsAsync);
-                qr2?.Value?.DoForeach(x => output.TryAdd(x.Id, x));
+                (await PostsAsync)?.Value?.DoForeach(x => output.TryAdd(x.Id, x));
             }
 
             return output;
@@ -130,17 +130,17 @@ namespace Test.Lib.Models
 
             foreach (var change in remainingChanges)
             {
-                switch (change.MetdataId)
+                switch (change.MetadataId)
                 {
                     case PersonMetadata.Name:
                         Name = change.GetValueAsString();
                         break;
                     default:
-                        return remainingChanges.Where(x => x.MetdataId > PersonMetadata.Last).ToList();
+                        return remainingChanges.Where(x => x.MetadataId > PersonMetadata.Last).ToList();
                 }
             }
 
-            return remainingChanges.Where(x => x.MetdataId > PersonMetadata.Last).ToList();
+            return remainingChanges.Where(x => x.MetadataId > PersonMetadata.Last).ToList();
         }
 
         #endregion
@@ -160,9 +160,9 @@ namespace Test.Lib.Models
         #endregion
     }
 
+    #region metadata maps
     public partial class Person
     {
-        #region metadata maps
 
         public static new Dictionary<int, ValueTypes> MetadataMaps
         {
@@ -183,7 +183,6 @@ namespace Test.Lib.Models
         }
         static Dictionary<int, ValueTypes> metadataMaps = new Dictionary<int, ValueTypes>();
 
-        #endregion
     }
 
     public static class PersonMetadata
@@ -192,6 +191,8 @@ namespace Test.Lib.Models
 
         public const int Last = Name;
     }
+
+    #endregion
 
     public enum PersonActions
     {

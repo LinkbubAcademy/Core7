@@ -1,4 +1,5 @@
 ﻿using Common.Lib.Core;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 
 namespace Common.Lib.Services.Protobuf
@@ -9,7 +10,7 @@ namespace Common.Lib.Services.Protobuf
         {
             ActionResult = new ActionResult()
             {
-                IsSuccess = true,
+                IsSuccess = qr.IsSuccess,
                 Message = qr.Message
             };
 

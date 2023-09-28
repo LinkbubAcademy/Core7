@@ -1,13 +1,7 @@
-﻿using Common.Lib.Authentication;
-using Common.Lib.Client.Services;
-using Common.Lib.Core.Context;
+﻿using Common.Lib.Core.Context;
 using Common.Lib.Services.ParamsCarriers;
-using Common.Lib.Services;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using Test.Lib.Models;
 using Common.Lib.Server.Context;
-using Test.Blazor.Client.Context;
+using Test.Lib.Models;
 using Test.Lib.Context;
 using Test.Blazor.Server.Context;
 
@@ -24,12 +18,12 @@ namespace Test.Blazor.Server.App
         public void RegisterDependencies()
         {
             Builder.Services.AddTransient<IParamsCarrierFactory, Common.Lib.Services.Protobuf.ParamsCarrierFactory>();
-            Builder.Services.AddTransient<IServiceInvoker>(sp => new ServiceInvoker(
-                                                                    sp.GetRequiredService<NavigationManager>().BaseUri,
-                                                                    sp.GetService<IContextFactory>()));
+            //Builder.Services.AddTransient<IServiceInvoker>(sp => new ServiceInvoker(
+            //                                                        sp.GetRequiredService<NavigationManager>().BaseUri,
+            //                                                        sp.GetService<IContextFactory>()));
 
             Builder.Services.AddTransient<IWorkflowManager>(sp => new WorkflowManager());
-            Builder.Services.AddSingleton<IContextFactory>(sp => new ContextFactory(sp) { IsServerMode = true });
+            Builder.Services.AddSingleton<IContextFactory>(sp => new ContextFactory(sp, "Test.Lib") { IsServerMode = true });
 
             RegisterDbSets();
             RegisterRepositories();

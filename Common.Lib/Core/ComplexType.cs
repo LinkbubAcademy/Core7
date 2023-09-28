@@ -5,5 +5,15 @@
     /// </summary>
     public class ComplexType
     {
+        public static string Splitter = "~";
+
+        public static string ListSplitter = "¬";
+
+        public Action<string> Setter;
+
+        public virtual void Store()
+        {
+
+        }
     }
 }

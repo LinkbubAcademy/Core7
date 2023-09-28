@@ -1,4 +1,6 @@
-﻿namespace Common.Lib.Core.Context
+﻿using Common.Lib.Infrastructure.Actions;
+
+namespace Common.Lib.Core.Context
 {
     public interface IRepository : IDisposable
     {
@@ -8,6 +10,8 @@
     public interface IRepository<T> : ICrudHandler<T>, IQueryHandler<T>, IRepository where T : Entity, new()
     {
         IQueryAggregator<T> DeclareChildrenPolicy(int n);
+
+        Task<QueryResult<List<T>>> ToListAsync();
     }
 
 }

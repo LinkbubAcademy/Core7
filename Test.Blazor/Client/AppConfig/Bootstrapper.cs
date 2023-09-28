@@ -32,7 +32,7 @@ namespace Test.Blazor.Client.AppConfig
                                                                     sp.GetService<IContextFactory>()));
 
             Builder.Services.AddTransient<IParamsCarrierFactory, Common.Lib.Services.Protobuf.ParamsCarrierFactory>();
-            Builder.Services.AddSingleton<IContextFactory>(sp => new ContextFactory(sp) { IsServerMode = false});
+            Builder.Services.AddSingleton<IContextFactory>(sp => new ContextFactory(sp, "Test.Lib") { IsServerMode = false});
 
             RegisterDbSets();
             RegisterRepositories();
