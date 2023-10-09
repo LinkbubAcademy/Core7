@@ -10,14 +10,18 @@ namespace Common.Lib.Services.Protobuf
 
             if (expressions is IQueryExpression[])
                 ((IQueryExpression[])expressions)
-                    .DoForeach(exp => SExpressions.Add(new QueryExpressionInfo(exp)));            
+                    .DoForeach(exp => SExpressions.Add(new QueryExpressionInfo(exp)));
+            else if (expressions is ExpressionsGroup)
+                ((ExpressionsGroup)expressions)
+                    .Expressions
+                    .DoForeach(exp => SExpressions.Add(new QueryExpressionInfo(exp)));
             else if(expressions is IPropertySelector[])
                 SExpressions.Add(new QueryExpressionInfo(((IPropertySelector[])expressions)[0]));
             else if (expressions is IPropertySelector)
                 SExpressions.Add(new QueryExpressionInfo((IPropertySelector)expressions));
             else
             {
-                Console.WriteLine($"QueryOperationInfo.ctor expressions type: {expressions.GetType().FullName}");
+                Console.WriteLine($"missing QueryOperationInfo.ctor expressions type: {expressions.GetType().FullName}");
             }
         }
 

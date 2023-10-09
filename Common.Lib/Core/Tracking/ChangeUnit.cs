@@ -25,7 +25,7 @@
 
         public T GetValueAsEnum<T>() where T : System.Enum, new()
         {
-            return Value != null ? new T() : default;
+            return Value != null ? (T)Value : default;
         }
 
         public Guid GetValueAsGuid()

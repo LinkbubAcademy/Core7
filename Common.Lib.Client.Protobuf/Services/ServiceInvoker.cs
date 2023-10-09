@@ -27,7 +27,7 @@ namespace Common.Lib.Client.Services
             Channel = new CoreServices.CoreServicesClient(channel);
         }
 
-        public async Task<IActionResult> AddNewEntityRequestAsync(ISaveEntityParamsCarrier paramsCarrier)
+        public async Task<ISaveResult<TEntity>> AddNewEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new()
         {
             if (paramsCarrier is not SaveEntityParamsCarrier)
             {
@@ -36,11 +36,62 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
-            var output = await Channel.RequestAddNewEntityAsync((SaveEntityParamsCarrier)paramsCarrier);
+            var result = await Channel.RequestAddNewEntityAsync((SaveEntityParamsCarrier)paramsCarrier);
+
+            var output = new SaveResult<TEntity>
+            {
+                IsSuccess = result.IsSuccess,
+                Message = result.Message,
+                Value = ContextFactory.ReconstructEntity<TEntity>(result.SValue),
+                //ReferencedEntities = result
+                //            .SReferencedEntities
+                //            .ToDictionary(x => Guid.Parse(x.Key),
+                //                            x => ContextFactory.ReconstructEntity(x.Value))
+            };
+
             return output;
         }
 
-        public async Task<IActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier)
+        public async Task<ISaveResult<TEntity>> UpdateEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new()
+        {
+            if (paramsCarrier is not SaveEntityParamsCarrier)
+            {
+                throw new ArgumentNullException($"ISaveEntityParamsCarrier paramsCarrier must come " +
+                    $"from the proper factory: " +
+                    $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
+            }
+
+            var result = await Channel.RequestUpdateEntityAsync((SaveEntityParamsCarrier)paramsCarrier); 
+            
+            var output = new SaveResult<TEntity>
+            {
+                IsSuccess = result.IsSuccess,
+                Message = result.Message,
+                Value = ContextFactory.ReconstructEntity<TEntity>(result.SValue),
+                //ReferencedEntities = result
+                //            .SReferencedEntities
+                //            .ToDictionary(x => Guid.Parse(x.Key),
+                //                            x => ContextFactory.ReconstructEntity(x.Value))
+            };
+
+            return output;
+        }
+
+        public async Task<IDeleteResult> DeleteEntityRequestAsync(IDeleteEntityParamsCarrier paramsCarrier)
+        {
+            if (paramsCarrier is not DeleteEntityParamsCarrier)
+            {
+                throw new ArgumentNullException($"IDeleteEntityParamsCarrier paramsCarrier must come " +
+                    $"from the proper factory: " +
+                    $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
+            }
+
+            var output = await Channel.RequestDeleteEntityAsync((DeleteEntityParamsCarrier)paramsCarrier);
+            return output;
+        }
+
+
+        public async Task<IProcessActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier)
         {
             if (paramsCarrier is not ParametricActionParamsCarrier)
             {
@@ -50,6 +101,7 @@ namespace Common.Lib.Client.Services
             }
 
             var output = await Channel.RequestParametricActionAsync((ParametricActionParamsCarrier)paramsCarrier);
+            Console.WriteLine("RequestParametricActionAsync.IsSuccess " + output.IsSuccess + " serializedValue: " + output.Serialized);
             return output;
         }
 

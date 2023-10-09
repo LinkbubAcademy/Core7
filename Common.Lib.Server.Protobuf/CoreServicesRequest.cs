@@ -19,14 +19,42 @@ namespace Common.Lib.Server.Protobuf
             var entity = ContextFactory.ReconstructEntity(paramsCarrier.EntityInfo);
             entity.Id = paramsCarrier.EntityInfo.EntityId;
 
-            var sr1 = entity.SaveAction != null ? 
-                            await entity.SaveAction() : 
-                            new Infrastructure.Actions.SaveResult() { IsSuccess = false, Message = "Save Action not added" };
+            var sr1 = entity.SaveAction != null ?
+                            await entity.SaveAction() :
+                            new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
             
             return await Task.FromResult(new SaveResult(sr1));
         }
 
-        public override async Task<ActionResult> RequestParametricAction(ParametricActionParamsCarrier paramsCarrier, ServerCallContext context)
+        public override async Task<SaveResult> RequestUpdateEntity(SaveEntityParamsCarrier paramsCarrier, ServerCallContext context)
+        {
+            var entity = ContextFactory.ReconstructAndUpdateEntity(paramsCarrier.EntityInfo);
+            entity.IsNew = false;
+            entity.Id = paramsCarrier.EntityInfo.EntityId;
+
+            var sr1 = entity.SaveAction != null ?
+                            await entity.SaveAction() :
+                            new Infrastructure.Actions.SaveResult<Entity> () { IsSuccess = false, Message = "Save Action not added" };
+
+            return await Task.FromResult(new SaveResult(sr1));
+        }
+
+        public override async Task<DeleteResult> RequestDeleteEntity(DeleteEntityParamsCarrier paramsCarrier, ServerCallContext context)
+        {
+            using var repo = ContextFactory.GetRepository(paramsCarrier.EntityModelType);
+            var qrEntity = await repo.FindAsync(paramsCarrier.EntityId);
+
+            var entity = qrEntity.Value;
+            entity.ContextFactory = ContextFactory;
+
+            var dr1 = entity.DeleteAction != null ?
+                            await entity.DeleteAction() :
+                            new Infrastructure.Actions.DeleteResult() { IsSuccess = false, Message = "Save Action not added" };
+
+            return await Task.FromResult(new DeleteResult(dr1));
+        }
+
+        public override async Task<ProcessActionResult> RequestParametricAction(ParametricActionParamsCarrier paramsCarrier, ServerCallContext context)
         {
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var qrEntity = await repo.FindAsync(paramsCarrier.EntityId);
@@ -36,22 +64,22 @@ namespace Common.Lib.Server.Protobuf
                 var ent = qrEntity.Value;
 
                 if (ent == null)
-                    return new ActionResult() { IsSuccess = false, Message = "Entity not found in repo" };
+                    return new ProcessActionResult() { IsSuccess = false, Message = "Entity not found in repo" };
                 ent.ContextFactory = ContextFactory;
 
                 var paramActionId = paramsCarrier.RepositoryType + "." + paramsCarrier.ParametricActionName;
                 var values = EntityMetadata.DeserializeParamActionValues(paramActionId, paramsCarrier.SerializedValues);
 
                 var aResult = await ent.ProcessActionAsync(paramActionId, values);
-
+                
                 ent.ContextFactory = null;
 
                 if (aResult == null)
-                    return await Task.FromResult(new ActionResult() { IsSuccess = false, Message="action not registered" });
+                    return await Task.FromResult(new ProcessActionResult() { IsSuccess = false, Message="action not registered" });
 
-                return await Task.FromResult(new ActionResult() { IsSuccess = aResult.IsSuccess });
+                return await Task.FromResult(new ProcessActionResult(aResult));
             }
-            return await Task.FromResult(new ActionResult() { IsSuccess =false });
+            return await Task.FromResult(new ProcessActionResult() { IsSuccess =false });
         }
 
         public override async Task<QueryEntityResult> QueryRepositoryForEntity(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)

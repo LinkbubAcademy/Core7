@@ -20,5 +20,10 @@
         {
             _errors.Add(error);
         }
+
+        public void AddErrors(IEnumerable<string> errors)
+        {
+            _errors.AddRange(errors);
+        }
     }
 }

@@ -9,8 +9,10 @@ namespace Common.Lib.Services
     {
         string BaseUri { get; set; }
 
-        Task<IActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier);
-        Task<IActionResult> AddNewEntityRequestAsync(ISaveEntityParamsCarrier paramsCarrier);
+        Task<IProcessActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier);
+        Task<ISaveResult<TEntity>> AddNewEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new();
+        Task<ISaveResult<TEntity>> UpdateEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new();
+        Task<IDeleteResult> DeleteEntityRequestAsync(IDeleteEntityParamsCarrier paramsCarrier);
         Task<QueryResult<TEntity>> QueryRepositoryForEntity<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new();
         Task<QueryResult<List<TEntity>>> QueryRepositoryForEntities<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new();
         

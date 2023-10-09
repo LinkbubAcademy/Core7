@@ -8,7 +8,7 @@
         {
             var output = string.Empty;
 
-            for (var i = 0; i < args.Length - 1; i++)
+            for (var i = 0; i < args.Length; i++)
             {
                 var o = args[i];
 
@@ -18,11 +18,11 @@
                 }
                 else if (o is DateTime time)
                 {
-                    output += time.Ticks.ToString();
+                    output += (time.Ticks.ToString() + splitter);
                 }
                 else
                 {
-                    output += o.ToString();
+                    output += (o.ToString() + splitter);
                 }
             }
 

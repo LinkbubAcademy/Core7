@@ -25,6 +25,7 @@ namespace Common.Lib.Core.Context
         T NewModel<T>() where T : Entity, new();
 
         Entity ReconstructEntity(IEntityInfo entityInfo);
+        Entity ReconstructAndUpdateEntity(IEntityInfo entityInfo);
 
         TEntity ReconstructEntity<TEntity>(IEntityInfo entityInfo) where TEntity : Entity, new();
 

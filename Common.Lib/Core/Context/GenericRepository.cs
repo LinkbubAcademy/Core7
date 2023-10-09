@@ -1,4 +1,5 @@
 ﻿using Common.Lib.Core.Expressions;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using System.Linq.Expressions;
 
@@ -6,6 +7,7 @@ namespace Common.Lib.Core.Context
 {
     public class GenericRepository<T> : IRepository<T> where T : Entity, new()
     {
+        public IContextFactory ContextFactory { get; set; }
         public virtual IWorkflowManager WorkflowManager
         {
             get
@@ -27,10 +29,11 @@ namespace Common.Lib.Core.Context
 
         readonly IDbSet<T> _dbSet;
 
-        public GenericRepository(IDbSet<T> dbSet, IWorkflowManager workflowManager)
+        public GenericRepository(IDbSet<T> dbSet, IWorkflowManager workflowManager, IContextFactory contextFactory)
         {
             _workflowManager = workflowManager;
             _dbSet = dbSet;
+            ContextFactory = contextFactory;
         }
 
         public IQueryAggregator<T> DeclareChildrenPolicy(int n)
@@ -41,7 +44,7 @@ namespace Common.Lib.Core.Context
         }
 
         #region CRUD operations
-        public virtual Task<ActionResult> AddAsync(T entity)
+        public virtual Task<ISaveResult<T>> AddAsync(T entity)
         {
             if (entity.Id == default)
                 entity.Id = Guid.NewGuid();
@@ -51,14 +54,16 @@ namespace Common.Lib.Core.Context
             return output;
         }
 
-        public virtual Task<ActionResult> DeleteAsync(Guid id)
+        public virtual Task<IDeleteResult> DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
+            var output = DbSet.DeleteAsync(id);
+            return output;
         }
 
-        public virtual Task<ActionResult> UpdateAsync(T entity)
+        public virtual Task<ISaveResult<T>> UpdateAsync(T entity)
         {
-            throw new NotImplementedException();
+            var output = DbSet.UpdateAsync(entity);
+            return output;
         }
 
         public Task<QueryResult<T>> FindAsync(Guid id)

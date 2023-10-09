@@ -9,7 +9,7 @@
         public override IWorkflowManager WorkflowManager => UnitOfWork.WorkflowManager;
 
         public GenericUoWRepository()
-            : base(null, null)
+            : base(null, null, null)
         {
 
         }

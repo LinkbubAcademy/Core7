@@ -1,6 +1,7 @@
 ﻿using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Tracking;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 
 namespace Test.Lib.Models
@@ -31,7 +32,7 @@ namespace Test.Lib.Models
 
         public Post()
         {
-            SaveAction = SaveAsync;
+            SaveAction = async () => await SaveAsync();
         }
 
         #region Clone
@@ -60,16 +61,16 @@ namespace Test.Lib.Models
             throw new ArgumentException($"Type {typeof(T).FullName} does not derived from Post");
         }
 
-        public override async Task<Dictionary<Guid, Entity>> IncludeChildren(QueryResult qr, int nestingLevel)
+        public override async Task IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
         {
-            var output = await base.IncludeChildren(qr, nestingLevel);
+            await base.IncludeChildren(refEnts, nestingLevel);
 
-            if (nestingLevel > 0)
-            {
-                (await OwnerAsync)?.Value?.Do<Person>(x => output.TryAdd(x.Id, x));
-            }
+            //if (nestingLevel > 0)
+            //{
+            //    (await OwnerAsync)?.Value?.Do<Person>(x => output.TryAdd(x.Id, x));
+            //}
 
-            return output;
+            //return output;
         }
 
         public override void AssignChildren(QueryResult qr)
@@ -141,12 +142,12 @@ namespace Test.Lib.Models
 
         #region Save
 
-        public virtual async Task<SaveResult> SaveAsync()
+        public virtual async Task<ISaveResult<Post>> SaveAsync()
         {
             return await SaveAsync<Post>();
         }
 
-        public override async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null)
+        public override async Task<ISaveResult<T>> SaveAsync<T>(IUnitOfWork? uow = null)
         {
             return await base.SaveAsync<T>();
         }

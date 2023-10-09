@@ -103,7 +103,7 @@ namespace Common.Lib.Services.Protobuf
             switch (valueType)
             {
                 case ValueTypes.String:
-                case ValueTypes.ReferencedImage:
+                case ValueTypes.ReferencedImage:                   
                     return (string)value;
 
                 case ValueTypes.Bool:

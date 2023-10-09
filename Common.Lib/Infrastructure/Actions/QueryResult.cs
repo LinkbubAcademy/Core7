@@ -5,6 +5,22 @@ namespace Common.Lib.Infrastructure.Actions
     public class QueryResult : ActionResult
     {
         public Dictionary<Guid, Entity> ReferencedEntities { get; set; } = new Dictionary<Guid, Entity>();
+
+        public virtual IProcessActionResult ToProcessActionResult(
+                                                            IProcessActionResult.OutputTypes outputType,
+                                                            bool isCollection,
+                                                            string className)
+        {
+            var output = new ProcessActionResult()
+            {
+                Serialized = string.Empty,
+                OutputType = outputType,
+                IsCollection = isCollection,
+                OutputClassName = className
+            };
+
+            return output;
+        }
     }
 
     public class QueryResult<T> : QueryResult
@@ -20,6 +36,44 @@ namespace Common.Lib.Infrastructure.Actions
         {
             Value = value;
             IsSuccess = value is not null;
+        }
+
+        public override IProcessActionResult ToProcessActionResult(
+                                                            IProcessActionResult.OutputTypes outputType,
+                                                            bool isCollection,
+                                                            string className)
+        {
+            var output = new ProcessActionResult()
+            {
+                IsSuccess = IsSuccess,
+                Serialized =  string.Empty,
+                OutputType = outputType,
+                IsCollection = isCollection,
+                OutputClassName = className
+            };
+
+            if (Value != null)
+            {
+                switch (outputType)
+                {
+                    //Todo: complete all possibilities
+                    case IProcessActionResult.OutputTypes.SimpleType:
+                        if (className == "Guid")
+                        {
+                            output.Serialized = Value.ToString();
+                        }
+                        break;
+                    case IProcessActionResult.OutputTypes.Dto:
+                        break;
+                    case IProcessActionResult.OutputTypes.Model:
+                        break;
+                    case IProcessActionResult.OutputTypes.Void:
+                    default:
+                            break;
+                }
+            }
+
+            return output;
         }
     }
 }

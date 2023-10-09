@@ -1,7 +1,10 @@
 ﻿using Common.Lib.Core.Expressions;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using Common.Lib.Services;
 using Common.Lib.Services.ParamsCarriers;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Common.Lib.Core.Context
 {
@@ -19,9 +22,9 @@ namespace Common.Lib.Core.Context
             ParamsCarrierFactory = paramsCarrierFactory;
         }
 
-        public async Task<ActionResult> AddAsync(T entity)
+        public async Task<ISaveResult<T>> AddAsync(T entity)
         {
-            var output = new QueryResult<T>();
+            //var output = new SaveResult<T>();
 
             var paramsCarrier = ParamsCarrierFactory
                                 .CreateSaveEntityParams(
@@ -30,28 +33,73 @@ namespace Common.Lib.Core.Context
                                         actionTime: DateTime.Now,
                                         entityInfo: entity.GetChanges());
 
-            var response = await ServiceInvoker.AddNewEntityRequestAsync(paramsCarrier);
+            var response = await ServiceInvoker.AddNewEntityRequestAsync<T>(paramsCarrier);
+            //output.IsSuccess = response.IsSuccess;
+            //output.Message = response.Message;
+            //output.Value = response
+
+            return await Task.FromResult(response);
+        }
+
+        public async Task<IDeleteResult> DeleteAsync(Guid id)
+        {
+            var output = new DeleteResult();
+            var paramsCarrier = ParamsCarrierFactory
+                                .CreateDeleteEntityParams(
+                                        userId: UserId,
+                                        userToken: Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                                        actionTime: DateTime.Now,
+                                        entityId: id,
+                                        entityModelType: typeof(T).FullName);
+
+            var response = await ServiceInvoker.DeleteEntityRequestAsync(paramsCarrier);
             output.IsSuccess = response.IsSuccess;
             output.Message = response.Message;
 
             return await Task.FromResult(output);
         }
 
-        public Task<ActionResult> DeleteAsync(Guid id)
+        public async Task<ISaveResult<T>> UpdateAsync(T entity)
         {
-            throw new NotImplementedException();
-        }
+            //var output = new SaveResult<T>();
 
-        public Task<ActionResult> UpdateAsync(T entity)
-        {
-            throw new NotImplementedException();
+            var paramsCarrier = ParamsCarrierFactory
+                                .CreateSaveEntityParams(
+                                        userId: UserId,
+                                        userToken: Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                                        actionTime: DateTime.Now,
+                                        entityInfo: entity.GetChanges());
+
+            var response = await ServiceInvoker.UpdateEntityRequestAsync<T>(paramsCarrier);
+            //output.IsSuccess = response.IsSuccess;
+            //output.Message = response.Message;
+
+            return await Task.FromResult(response);
         }
 
         public async Task<QueryResult<T>> FindAsync(Guid id)
         {
-            var output = new QueryResult<T>();
+            var operations = new List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>>();
+            var expressions = new IQueryExpression[1] { EntityById.Create(id) };
 
-            return await Task.FromResult(output);
+            operations.Add(new Tuple<QueryTypes, IExpressionBuilder, ValueTypes>
+                                (QueryTypes.Find, expressions.GroupExpressions(), ValueTypes.Bool));
+
+            var paramsCarrier = ParamsCarrierFactory
+                                    .CreateQueryRepositoryParams(
+                                        userId: UserId,
+                                        userToken: UserToken,
+                                        actionTime: DateTime.Now,
+                                        repoTypeName: typeof(T).FullName,
+                                        operations: operations,
+                                        nestingLevel: NestingLevel);
+
+            var response = await ServiceInvoker.QueryRepositoryForEntity<T>(paramsCarrier);
+
+            if (response.IsSuccess)
+                response.Value?.AssignChildren(response);
+
+            return response;
         }
 
         public async Task<QueryResult<T>> GetEntityAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations)
@@ -95,6 +143,9 @@ namespace Common.Lib.Core.Context
         #region  Get Value
         public Task<QueryResult<bool>> GetBoolValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations)
         {
+            var e = (operations[0].Item2 as ExpressionsGroup).Expressions;
+            Console.WriteLine("ClientDbSet GetBoolValueAsync operations[0].expressions.Length: " + e.Length);
+
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,

@@ -1,6 +1,8 @@
 ﻿using Common.Lib.Core.Expressions;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection.PortableExecutable;
 
@@ -21,21 +23,9 @@ namespace Common.Lib.Core.Context
 
         #region CRUD
 
-        public ActionResult Add(T entity)
+        public ISaveResult<T> Add(T entity)
         {
-            var output = new ActionResult();
-
-            if (Items.TryAdd(entity.Id, entity))
-            {
-                output.IsSuccess = true;
-            }
-
-            return output;
-        }
-
-        public Task<ActionResult> AddAsync(T entity)
-        {
-            var output = new QueryResult<T>();
+            var output = new SaveResult<T>();
 
             if (Items.TryAdd(entity.Id, entity))
             {
@@ -43,21 +33,68 @@ namespace Common.Lib.Core.Context
                 output.Value = entity;
             }
 
-            return Task.FromResult((ActionResult)output);
+            return output;
         }
 
-        public Task<ActionResult> UpdateAsync(T entity)
+        public Task<ISaveResult<T>> AddAsync(T entity)
         {
-            throw new NotImplementedException();
-        }
-        public Task<ActionResult> DeleteAsync(Guid id)
-        {
-            throw new NotImplementedException();
+            return Task.FromResult(Add(entity));
         }
 
-        public ActionResult Delete(Guid id)
+        public ISaveResult<T> Update(T entity)
         {
-            throw new NotImplementedException();
+            var output = new SaveResult<T>();
+            if (!Items.ContainsKey(entity.Id))
+            {
+                output.IsSuccess = false;
+                output.AddError($"Entity with id {entity.Id} is not in the cache");
+                return output;
+            }
+
+            var existingEntity = Items[entity.Id];
+
+            if (Items.TryUpdate(entity.Id, entity, existingEntity))
+            {
+                output.IsSuccess = true;
+                output.Value = existingEntity;
+            }
+            else
+            {
+                output.IsSuccess = false;
+                output.AddError($"error updating Entity with id {entity.Id} in the cache");
+            }
+
+            return output;
+        }
+
+
+        public Task<ISaveResult<T>> UpdateAsync(T entity)
+        {
+            return Task.FromResult(Update(entity));
+        }
+        public Task<IDeleteResult> DeleteAsync(Guid id)
+        {
+            return Task.FromResult(Delete(id));
+        }
+
+        public IDeleteResult Delete(Guid id)
+        {
+            var output = new DeleteResult();
+
+            if (!Items.ContainsKey(id))
+            {
+                output.AddError($"entity with {id} not found in cache");
+                return output;
+            }
+
+            if (!Items.Remove(id, out _))
+            {
+                output.AddError($"entity with {id} cannot be removed but it is in the cache");
+                return output;
+            }
+
+            output.IsSuccess = true;
+            return output;
         }
 
         public QueryResult<T> Find(Guid id)
@@ -539,7 +576,7 @@ namespace Common.Lib.Core.Context
 
         public Task<QueryResult<List<TOut>>> GetEntitiesAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations) where TOut : T
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
             var output = new QueryResult<List<TOut>>();
 
             foreach (var tuple in Operations)
@@ -548,12 +585,13 @@ namespace Common.Lib.Core.Context
                 var expBuilder = tuple.Item2;
                 var vType = tuple.Item3;
 
-                var condition = GetCondition(expBuilder);
-
                 switch (queryType)
                 {
                     case QueryTypes.Where:
-                        ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
+                        if (expBuilder is ExpressionsGroup)
+                            ProcessWhere(ref source, expBuilder as ExpressionsGroup);
+                        else
+                            ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
                         ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
@@ -575,7 +613,7 @@ namespace Common.Lib.Core.Context
 
         public Task<QueryResult<TOut>> GetEntityAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations) where TOut : T
         {
-            var source = Items.Values.AsQueryable();
+            var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
             var output = new QueryResult<TOut>();
 
             T e = null;
@@ -591,7 +629,10 @@ namespace Common.Lib.Core.Context
                 switch (queryType)
                 {
                     case QueryTypes.Where:
-                        ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
+                        if (expBuilder is ExpressionsGroup)
+                            ProcessWhere(ref source, expBuilder as ExpressionsGroup);
+                        else
+                            ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
                         ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
@@ -600,6 +641,7 @@ namespace Common.Lib.Core.Context
                         ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
                         break;
 
+                    case QueryTypes.Find:
                     case QueryTypes.FirstOrDefault:
                         output.IsSuccess = true;
                         e = condition == null ?
@@ -647,7 +689,10 @@ namespace Common.Lib.Core.Context
                 switch (queryType)
                 {
                     case QueryTypes.Where:
-                        ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
+                        if (expBuilder is ExpressionsGroup)
+                            ProcessWhere(ref source, expBuilder as ExpressionsGroup);
+                        else
+                            ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
                         ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
@@ -691,7 +736,7 @@ namespace Common.Lib.Core.Context
                     case QueryTypes.OrderByDesc:
                         ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
                         break;
-
+                    case QueryTypes.Find: //Todo: place Find in its proper place to get by dictionary key
                     case QueryTypes.FirstOrDefault:
                         output.IsSuccess = true;
                         output.Value = condition == null ? 
@@ -725,6 +770,14 @@ namespace Common.Lib.Core.Context
         #endregion
 
         #region Process
+
+        void ProcessWhere(ref IQueryable<T> source, ExpressionsGroup? expBuilder)
+        {
+            //var condition = expGroup.Expressions?.CombineExpressions<T>();
+            //var c = condition.CreateExpression<T>();
+            var condition = expBuilder == null ? null : GetCondition(expBuilder);
+            source = source.Where(condition ?? (x => true)).AsQueryable();
+        }
 
         void ProcessWhere(ref IQueryable<T> source, IQueryExpression<bool>? expression)
         {

@@ -21,7 +21,7 @@ namespace Common.Lib.Core.Expressions
             var output = ((IQueryExpression<bool>)expressions[0]).CreateExpression<TEntity>();
 
             if (expressions.Length == 1)
-                return new CombinedExpressionsTransporter<TEntity>();
+                return new CombinedExpressionsTransporter<TEntity>(output);
 
             for (var i = 1; i < expressions.Length; i++)
             {

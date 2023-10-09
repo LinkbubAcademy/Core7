@@ -1,5 +1,4 @@
-﻿using Common.Lib.Core.Expressions;
-using Common.Lib.Infrastructure.Actions;
+﻿using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Core.Context
 {
@@ -7,11 +6,11 @@ namespace Common.Lib.Core.Context
 
     public interface ICrudHandler<T> where T : Entity, new()
     {
-        Task<ActionResult> AddAsync(T entity);
+        Task<ISaveResult<T>> AddAsync(T entity);
 
-        Task<ActionResult> UpdateAsync(T entity);
+        Task<ISaveResult<T>> UpdateAsync(T entity);
 
-        Task<ActionResult> DeleteAsync(Guid id);
+        Task<IDeleteResult> DeleteAsync(Guid id);
     }
 
 }

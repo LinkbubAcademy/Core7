@@ -30,6 +30,16 @@ namespace Common.Lib.Services.Protobuf
             return new SaveEntityParamsCarrier(userId, userToken, actionTime, entityInfo);
         }
 
+        public IDeleteEntityParamsCarrier CreateDeleteEntityParams(Guid userId,
+                                                                string userToken,
+                                                                DateTime actionTime,
+                                                                Guid entityId,
+                                                                string entityModelType)
+        {
+            return new DeleteEntityParamsCarrier(userId, userToken, actionTime, entityId, entityModelType);
+        }
+
+
         public IParametricActionParamsCarrier CreateParametricActionParams(
                                                 Guid userId,
                                                 string userToken,

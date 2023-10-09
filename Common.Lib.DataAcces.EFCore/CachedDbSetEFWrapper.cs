@@ -1,6 +1,7 @@
 ﻿using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Expressions;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -61,24 +62,24 @@ namespace Common.Lib.DataAccess.EFCore
         /// <param name="entity"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public ActionResult Add(T entity)
+        public ISaveResult<T> Add(T entity)
         {
             var addedEntity = DbSet.Add(entity).Entity;
 
             if (addedEntity == null)
-                return new ActionResult() { IsSuccess = false };
+                return new SaveResult<T>() { IsSuccess = false };
                             
             if (PendingToConfirmAddToCache == null)
                 throw new Exception("PendingToConfirmAddToCache is null");
                 
             PendingToConfirmAddToCache.Add(addedEntity.Id, addedEntity);
-            return new ActionResult() { IsSuccess = false };
+            return new SaveResult<T>() { IsSuccess = false, Value = addedEntity };
         }
 
-        public async Task<ActionResult> AddAsync(T entity)
+        public async Task<ISaveResult<T>> AddAsync(T entity)
         {
             var addedEntity = DbSet.Add(entity).Entity;
-            var output = new ActionResult();
+            var output = new SaveResult<T>();
 
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
@@ -90,9 +91,10 @@ namespace Common.Lib.DataAccess.EFCore
             {
                 var addToCache = CacheItems.Add(addedEntity);
                 if (!addToCache.IsSuccess)
-                    return addToCache;
+                    return addToCache.CastoTo<T>();                
             }
 
+            output.Value = addedEntity;
             return output;
 
         }
@@ -102,9 +104,38 @@ namespace Common.Lib.DataAccess.EFCore
             throw new NotImplementedException();
         }
 
-        public async Task<ActionResult> UpdateAsync(T entity)
+        public async Task<ISaveResult<T>> UpdateAsync(T entity)
         {
-            throw new NotImplementedException();
+            if (DbSetProvider == null)
+                throw new Exception("DbSetProvider is null");
+
+            var output = new SaveResult<T>();
+            var efEntity = await DbSet.FindAsync(entity.Id);
+
+            if (efEntity == null)
+            {
+                output.IsSuccess = false;
+                output.AddError($"Entity with id {entity.Id} not found in db");
+                return output;
+            }
+
+            var entityAsChanges = entity.GetChanges();
+            var changes = entityAsChanges.GetChangeUnits().OrderBy(x => x.MetadataId).ToList();
+            efEntity.ApplyChanges(changes);
+
+            var updateEntity = DbSet.Update(efEntity).Entity;
+            var saveResult = await DbSetProvider.SaveChangesAsync();
+            output.IsSuccess = saveResult != -1;
+
+            if (output.IsSuccess)
+            {
+                var updateToCache = CacheItems.Update(updateEntity);
+                if (!updateToCache.IsSuccess)
+                    return updateToCache.CastoTo<T>();
+            }
+
+            output.Value = updateEntity;
+            return output;
         }
 
         public async Task<ActionResult> Delete(Guid id)
@@ -112,9 +143,46 @@ namespace Common.Lib.DataAccess.EFCore
             throw new NotImplementedException();
         }
 
-        public async Task<ActionResult> DeleteAsync(Guid id)
+        public async Task<IDeleteResult> DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
+            if (DbSetProvider == null)
+                throw new Exception("DbSetProvider is null");
+
+            T entityToRemove;
+
+            if (CacheItems.Find(id).Value == null)
+            {
+                entityToRemove = await DbSet.FindAsync(id);
+
+                if (entityToRemove == null)
+                {
+                    var error1 = new DeleteResult()
+                    {
+                        IsSuccess = false
+                    };
+                    error1.AddError($"entity with id: {id} not found");
+                    return error1;
+                }
+            }
+            else
+            {
+                entityToRemove = await DbSet.FindAsync(id);
+            }
+
+            var result = DbSet.Remove(entityToRemove).Entity != null;
+            //todo: handle possible error
+
+            var efSaveChangesResult = await DbSetProvider.SaveChangesAsync();
+            var output = new DeleteResult();
+            output.IsSuccess = efSaveChangesResult != -1;
+
+            if (output.IsSuccess)
+            {
+                var deleteFromCache = CacheItems.Delete(id);
+                if (!deleteFromCache.IsSuccess)
+                    return deleteFromCache;
+            }
+            return output;
         }
 
         public QueryResult<T> Find(Guid id)
@@ -132,7 +200,7 @@ namespace Common.Lib.DataAccess.EFCore
         #region Get Single Value
         public Task<QueryResult<bool>> GetBoolValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {
-            return CacheItems.GetBoolValueAsync(Operations);
+            return CacheItems.GetBoolValueAsync<T>(Operations);
         }
         public Task<QueryResult<int>> GetIntValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations)
         {

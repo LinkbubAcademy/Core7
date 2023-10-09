@@ -1,6 +1,7 @@
 ﻿using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Tracking;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using System.Reflection;
 using System.Xml.Linq;
@@ -44,9 +45,9 @@ namespace Common.Lib.Authentication
             throw new ArgumentException($"Type {typeof(T).FullName} does not derived from User");
         }
 
-        public override Task<Dictionary<Guid, Entity>> IncludeChildren(QueryResult qr, int nestingLevel)
+        public override Task IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
         {
-            return base.IncludeChildren(qr, nestingLevel);
+            return base.IncludeChildren(refEnts, nestingLevel);
         }
 
         public override void AssignChildren(QueryResult qr)
@@ -115,12 +116,12 @@ namespace Common.Lib.Authentication
 
         #region Save & Delete
 
-        public virtual async Task<SaveResult> SaveAsync()
+        public virtual async Task<ISaveResult<User>> SaveAsync()
         {
             return await this.SaveAsync<User>();
         }
 
-        public override async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null) 
+        public override async Task<ISaveResult<T>> SaveAsync<T>(IUnitOfWork? uow = null) 
         {
             return await base.SaveAsync<T>(uow);
         }        

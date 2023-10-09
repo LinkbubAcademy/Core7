@@ -1,5 +1,6 @@
 ﻿using Common.Lib.Core.Context;
 using Common.Lib.Core.Expressions;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Client.UI
 {
@@ -23,9 +24,19 @@ namespace Common.Lib.Client.UI
             }
         }
 
+        public Func<Func<Task>, Task>? InvokeAsync { get; set; }
+
         public BaseViewModel(IContextFactory contextFactory) 
         {
             ContextFactory = contextFactory;
+        }
+
+        public bool ProcessResult(IActionResult result)
+        {
+            if (!result.IsSuccess)
+                Errors.AddRange(result.Errors);
+
+            return result.IsSuccess;
         }
     }
 }

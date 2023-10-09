@@ -161,6 +161,8 @@ namespace Common.Lib.Core.Context
 
         void AddBoolOperation(IQueryExpression[] expressions, QueryTypes queryType)
         {
+            Console.WriteLine("QueryAggregator AddBoolOperation expressions.Length: " + expressions.Length);
+
             Operations.Add(new Tuple<QueryTypes, IExpressionBuilder, ValueTypes>
                                 (queryType, expressions.GroupExpressions(), ValueTypes.Bool));
         }

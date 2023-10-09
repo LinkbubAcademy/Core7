@@ -2,14 +2,13 @@
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Expressions;
 using Common.Lib.Infrastructure.Actions;
-using System.Net.Quic;
 
 namespace Common.Lib.Server.Context
 {
     public class ServerRepository<T> : GenericRepository<T>, IServerRepository where T : Entity, new()
     {
-        public ServerRepository(IDbSet<T> dbSet, IWorkflowManager wfm) 
-            : base(dbSet, wfm)
+        public ServerRepository(IDbSet<T> dbSet, IWorkflowManager wfm, IContextFactory contextFactory) 
+            : base(dbSet, wfm, contextFactory)
         {
 
         }
@@ -57,6 +56,17 @@ namespace Common.Lib.Server.Context
         public async Task<QueryResult<List<Entity>>> ExecuteGetEntitiesRequest(IEnumerable<IQueryOperationInfo> operations)
         {
             var qr1 = await DbSet.GetEntitiesAsync(GetOperations(operations));
+            var refEnts = new Dictionary<Guid, Entity>();
+
+            if (qr1.Value != null)
+            {
+                refEnts = new();
+                foreach (var entity in qr1.Value)
+                {
+                    entity.ContextFactory = ContextFactory;
+                    await entity.IncludeChildren(refEnts, this.DbSet.NestingLevel);
+                }
+            }
 
             return new QueryResult<List<Entity>>()
             {
@@ -65,7 +75,7 @@ namespace Common.Lib.Server.Context
                 Value = qr1.Value != null ?
                             qr1.Value.Select(x => x as Entity).ToList() :
                             new List<Entity>(),
-                ReferencedEntities = qr1.ReferencedEntities
+                ReferencedEntities = refEnts
             };
         }
 
@@ -73,14 +83,24 @@ namespace Common.Lib.Server.Context
         {
             var qr1 = await DbSet.GetEntityAsync(GetOperations(operations));
 
+            var refEnts = new Dictionary<Guid, Entity>();
+
+            if (qr1.Value != null)
+            {
+                refEnts = new();
+                qr1.Value.ContextFactory = ContextFactory;
+                await qr1.Value.IncludeChildren(refEnts, this.DbSet.NestingLevel);
+            }
+
             return new QueryResult<Entity>()
             {
                 IsSuccess = qr1.IsSuccess,
                 Message = qr1.Message,
-                Value = qr1.Value
+                Value = qr1.Value,
+                ReferencedEntities = refEnts
             };
         }
-        
+                
         public Task<QueryResult<List<object>>> ExecuteGetValuesRequest(IEnumerable<IQueryOperationInfo> operations)
         {
             return DbSet.GetValuesAsync<object>(GetOperations(operations));

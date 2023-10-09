@@ -16,11 +16,11 @@ namespace Common.Lib.Core.Context
 
             if (uow == null)
                 return (IRepository<T>)ServiceProvider.GetService(typeof(IRepository<T>));
-            
+
             var output = (IUoWRepository<T>)ServiceProvider.GetService(typeof(IUoWRepository<T>));
             output.UnitOfWork = uow;
 
-            return output;                                 
+            return output;
         }
 
         public T Resolve<T>()
@@ -44,18 +44,33 @@ namespace Common.Lib.Core.Context
 
         public T NewModel<T>() where T : Entity, new()
         {
-            return new T() 
-            { 
-                ContextFactory = this, 
-                Id = Guid.NewGuid(), 
+            return new T()
+            {
+                ContextFactory = this,
+                Id = Guid.NewGuid(),
                 CreatedOn = DateTime.Now,
                 UpdatedOn = DateTime.Now
             };
         }
 
         public Entity ReconstructEntity(IEntityInfo entityInfo)
-        {
+        {            
             var entity = MetadataHandler.ModelsConstructors[entityInfo.EntityModelType]();
+
+            entity.Id = entityInfo.EntityId;
+            entity.ContextFactory = this;
+
+            var changes = entityInfo.GetChangeUnits().OrderBy(x => x.MetadataId).ToList();
+
+            entity.ApplyChanges(changes);
+            return entity;
+        }
+
+        public Entity ReconstructAndUpdateEntity(IEntityInfo entityInfo)
+        {
+            using var repo = GetRepository(entityInfo.EntityModelType);
+            var entity = repo.FindAsync(entityInfo.EntityId).Result.Value;
+
             entity.Id = entityInfo.EntityId;
             entity.ContextFactory = this;
 

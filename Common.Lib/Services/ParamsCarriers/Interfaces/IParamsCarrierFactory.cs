@@ -8,6 +8,7 @@ namespace Common.Lib.Services.ParamsCarriers
     public interface IParamsCarrierFactory
     {
         ISaveEntityParamsCarrier CreateSaveEntityParams(Guid userId, string userToken, DateTime actionTime, IEntityInfo entityInfo);
+        IDeleteEntityParamsCarrier CreateDeleteEntityParams(Guid userId, string userToken, DateTime actionTime, Guid entityId, string entityModelType);
 
         IQueryRepositoryParamsCarrier CreateQueryRepositoryParams(
                                             Guid userId,

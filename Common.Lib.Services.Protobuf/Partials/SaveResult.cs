@@ -1,5 +1,6 @@
 ﻿using Common.Lib.Core;
 using Common.Lib.Infrastructure;
+using Common.Lib.Infrastructure.Actions;
 
 namespace Common.Lib.Services.Protobuf
 {
@@ -10,6 +11,13 @@ namespace Common.Lib.Services.Protobuf
             IsSuccess = saveResult.IsSuccess;
             Message = saveResult.Message;
             Errors = saveResult.Errors;
+
+            var qr = saveResult.AsQueryResult();
+
+            if (qr.IsSuccess && qr.Value != null)
+                this.SValue = new EntityInfo(qr.Value.GetChanges());
+
+            qr?.ReferencedEntities.DoForeach(e => SReferencedEntities.Add(e.Key.ToString(), new EntityInfo(e.Value.GetChanges())));
         }
 
 
@@ -25,5 +33,11 @@ namespace Common.Lib.Services.Protobuf
                     sErrors_.Add(error);
             }
         }
+
+        public QueryResult<Entity> AsQueryResult()
+        {
+            throw new NotImplementedException();
+        }
+        
     }
 }

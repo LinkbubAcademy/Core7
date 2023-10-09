@@ -2,6 +2,7 @@
 using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Tracking;
+using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using Delicapp.Lib.Authentication;
 
@@ -33,7 +34,7 @@ namespace Delicapp.Lib.Models
             }
         }
 
-        public Task<SaveResult> AddPostAsync(string message)
+        public async Task<ISaveResult<Post>> AddPostAsync(string message)
         {
             if (ContextFactory == null)
                 throw new ContextFactoryNullException("Person", "AddPostAsync");
@@ -42,14 +43,14 @@ namespace Delicapp.Lib.Models
 
             post.Message = message;
             post.OwnerId = this.Id;
-            return post.SaveAsync();
+            return await post.SaveAsync();
         }
 
         #endregion
 
         public Person() 
         {
-            SaveAction = SaveAsync;
+            SaveAction = async () => await SaveAsync();
         }
 
         #region Clone
@@ -76,17 +77,15 @@ namespace Delicapp.Lib.Models
             throw new ArgumentException($"Type {typeof(T).FullName} does not derived from Person");
         }
 
-        public override async Task<Dictionary<Guid, Entity>> IncludeChildren(QueryResult qr, int nestingLevel)
+        public override async Task IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
         {
-            var output = await base.IncludeChildren(qr, nestingLevel);
+            await base.IncludeChildren(refEnts, nestingLevel);
 
             if (nestingLevel > 0)
             {
                 var qr2 = (await PostsAsync);
-                qr2?.Value?.DoForeach(x => output.TryAdd(x.Id, x));
+                qr2?.Value?.DoForeach(x => refEnts.TryAdd(x.Id, x));
             }
-
-            return output;
         }
         public override void AssignChildren(QueryResult qr)
         {
@@ -147,12 +146,12 @@ namespace Delicapp.Lib.Models
 
         #region Save
 
-        public new virtual async Task<SaveResult> SaveAsync()
+        public new virtual async Task<ISaveResult<Person>> SaveAsync()
         {
             return await SaveAsync<Person>();
         }
 
-        public override async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null)
+        public override async Task<ISaveResult<T>> SaveAsync<T>(IUnitOfWork? uow = null)
         {
             return await base.SaveAsync<T>();
         }

@@ -5,7 +5,9 @@ option csharp_namespace = "Common.Lib.Services.Protobuf";
 service CoreServices
 {
   rpc RequestAddNewEntity (SaveEntityParamsCarrier) returns (SaveResult);  
-  rpc RequestParametricAction (ParametricActionParamsCarrier) returns (ActionResult);
+  rpc RequestUpdateEntity (SaveEntityParamsCarrier) returns (SaveResult);  
+  rpc RequestDeleteEntity (DeleteEntityParamsCarrier) returns (DeleteResult);  
+  rpc RequestParametricAction (ParametricActionParamsCarrier) returns (ProcessActionResult);
 
   rpc QueryRepositoryForEntity(QueryRepositoryParamsCarrier) returns (QueryEntityResult);
   rpc QueryRepositoryForEntities(QueryRepositoryParamsCarrier) returns (QueryEntitiesResult);
@@ -68,6 +70,13 @@ message SaveEntityParamsCarrier
 	EntityInfo EntityInfo = 2;
 }
 
+message DeleteEntityParamsCarrier
+{
+	ParamsCarrierInfo ServiceInfo = 1;
+	string sEntityId = 2;
+	string EntityModelType = 3;
+}
+
 message EntityInfo
 {
 	string sEntityId = 1;
@@ -76,16 +85,35 @@ message EntityInfo
 	map<int32, string> SerializedChanges = 4;
 }
 
+message ProcessActionResult 
+{
+  bool IsSuccess = 1;
+  string Message = 2;
+  string Serialized = 3;
+  int32 nOutputType = 4;
+  bool IsCollection = 5;
+  string OutputClassName = 6;
+}
+
 message ActionResult {
   bool IsSuccess = 1;
   string Message = 2;
 }
 
-message SaveResult
+message DeleteResult
 {	
   bool IsSuccess = 1;
   string Message = 2;
   repeated string sErrors = 3;}
+
+  message SaveResult
+{	
+  bool IsSuccess = 1;
+  string Message = 2;
+  repeated string sErrors = 3;
+  EntityInfo sValue = 4;
+  map<string, EntityInfo> sReferencedEntities = 5;
+}
 
 message QueryEntityResult
 {

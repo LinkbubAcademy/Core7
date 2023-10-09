@@ -35,7 +35,8 @@ namespace Common.Lib.Core
 
         public IContextFactory? ContextFactory { get; set; }
 
-        public Func<Task<SaveResult>>? SaveAction { get; set; }
+        public Func<Task<ISaveResult>>? SaveAction { get; set; }
+        public Func<Task<DeleteResult>>? DeleteAction { get; set; }
 
         public bool IsAlreadyAssigned { get; set; }
 
@@ -76,15 +77,17 @@ namespace Common.Lib.Core
             var output = new T
             {
                 Origin = this,
-                Id = Id
+                Id = Id,
+                ContextFactory = ContextFactory,
+                IsNew = false
             };
 
             return output;
         }
 
-        public virtual Task<Dictionary<Guid, Entity>> IncludeChildren(QueryResult qr, int nestingLevel)
+        public virtual Task IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
         {
-            return Task.FromResult(new Dictionary<Guid, Entity>());
+            return Task.CompletedTask;
         }
 
         public virtual void AssignChildren(QueryResult qr)
@@ -186,10 +189,10 @@ namespace Common.Lib.Core
             uow.AddEntitySave(this);
         }
 
-        public virtual async Task<SaveResult> SaveAsync<T>(IUnitOfWork? uow = null) where T : Entity, new()
+        public virtual async Task<ISaveResult<T>> SaveAsync<T>(IUnitOfWork? uow = null) where T : Entity, new()
         {
             if (this is not T entity)
-                return await Task.FromResult(new SaveResult()
+                return await Task.FromResult(new SaveResult<T>()
                 {
                     IsSuccess = false,
                     Message = $"Entity of type {this.GetType().Name} cannot be saved as {typeof(T).Name}"
@@ -204,18 +207,14 @@ namespace Common.Lib.Core
             using var repo = ContextFactory.GetRepository<T>(uow) ?? 
                 throw new RepositoryNotRegisteredException(typeof(T));
 
-            var output = new SaveResult();
+            var output = new SaveResult<T>();
 
             if (IsNew || Id == default)
             {
                 var createErrors = await ValidateNew();
                 if (createErrors == null)
                 {
-                    var addResult = await repo.AddAsync(entity);
-                    output.IsSuccess = addResult.IsSuccess;
-
-                    if (!addResult.IsSuccess)
-                        output.AddError(addResult.Message);
+                    return await repo.AddAsync(entity);
                 }
                 else
                 {
@@ -228,11 +227,7 @@ namespace Common.Lib.Core
                 var updateErrors = await ValidateUpdate();
                 if (updateErrors == null)
                 {
-                    var updateResult = await repo.UpdateAsync(entity);
-                    output.IsSuccess = updateResult.IsSuccess;
-
-                    if (!updateResult.IsSuccess)
-                        output.AddError(updateResult.Message);
+                    return await repo.UpdateAsync(entity);
                 }
                 else
                 {
@@ -281,13 +276,13 @@ namespace Common.Lib.Core
 
         #region Parametric actions
 
-        public virtual async Task<IActionResult?> RequestParametricActionAsync(string repoType, string actionName, object[] actionParams)
+        public virtual async Task<IProcessActionResult?> RequestParametricActionAsync(string repoType, string actionName, object[] actionParams)
         {
             if (ContextFactory == null)
                 throw new InvalidOperationException("you must get a model through the propel channels, ContextFactory is missing");
 
             if (ContextFactory.IsServerMode)
-                return null;
+                return default;
 
             var svcInvoker = ContextFactory.Resolve<IServiceInvoker>();
 
@@ -308,7 +303,7 @@ namespace Common.Lib.Core
             return result;
         }
 
-        public virtual async Task<IActionResult?> ProcessActionAsync(string actionId, object[] actionParams)
+        public virtual async Task<IProcessActionResult?> ProcessActionAsync(string actionId, object[] actionParams)
         {
             return null; 
         }
