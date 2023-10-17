@@ -67,6 +67,8 @@ namespace Common.Lib.Client.Components
             if (!qr.IsSuccess)
                 await JSRuntime.InvokeVoidAsync("alert", "error:" + msg);
 
+            ViewModel.Errors.Clear();
+
             return qr.IsSuccess;
         }
         public async Task<bool> CheckResultAsync(bool result)
