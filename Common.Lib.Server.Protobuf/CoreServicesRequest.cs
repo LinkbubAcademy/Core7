@@ -45,6 +45,13 @@ namespace Common.Lib.Server.Protobuf
             var qrEntity = await repo.FindAsync(paramsCarrier.EntityId);
 
             var entity = qrEntity.Value;
+            if (entity == null)
+                return new DeleteResult()
+                {
+                    IsSuccess = true,
+                    Message = "Entity was not found"
+                };
+
             entity.ContextFactory = ContextFactory;
 
             var dr1 = entity.DeleteAction != null ?
