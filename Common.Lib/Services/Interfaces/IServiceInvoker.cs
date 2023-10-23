@@ -14,6 +14,8 @@ namespace Common.Lib.Services
         Task<ISaveResult<TEntity>> UpdateEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new();
         Task<IDeleteResult> DeleteEntityRequestAsync(IDeleteEntityParamsCarrier paramsCarrier);
         Task<QueryResult<TEntity>> QueryRepositoryForEntity<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new();
+
+        Task<IActionResult> CommitUnitOfWorkAsync(IUnitOfWorkParamsCarrier paramsCarrier);
         Task<QueryResult<List<TEntity>>> QueryRepositoryForEntities<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new();
         
         Task<QueryResult<bool>> QueryRepositoryForBool(IQueryRepositoryParamsCarrier paramsCarrier);

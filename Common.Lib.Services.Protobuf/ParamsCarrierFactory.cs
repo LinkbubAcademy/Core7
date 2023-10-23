@@ -60,5 +60,14 @@ namespace Common.Lib.Services.Protobuf
                                                 paramActionName,
                                                 sValues);
         }
+
+        public IUnitOfWorkParamsCarrier CreateUnitOfWorkParams(Guid userId,
+                                                            string userToken,
+                                                            DateTime actionTime,
+                                                            IEnumerable<IUoWActInfo> actions)
+        {
+            return new UnitOfWorkParamsCarrier(userId, userToken, actionTime, actions);
+
+        }
     }
 }

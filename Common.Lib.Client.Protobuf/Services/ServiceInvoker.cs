@@ -303,5 +303,17 @@ namespace Common.Lib.Client.Services
             };
         }
 
+        public async Task<IActionResult> CommitUnitOfWorkAsync(IUnitOfWorkParamsCarrier paramsCarrier)
+        {
+            if (paramsCarrier is not UnitOfWorkParamsCarrier)
+            {
+                throw new ArgumentNullException($"IParametricActionParamsCarrier paramsCarrier must come " +
+                    $"from the proper factory: " +
+                    $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
+            }
+
+            var output = await Channel.RequestUnityOfWorkOperationsAsync((UnitOfWorkParamsCarrier)paramsCarrier);
+            return output;
+        }
     }
 }

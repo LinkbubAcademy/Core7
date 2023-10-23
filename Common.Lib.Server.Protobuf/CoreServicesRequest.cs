@@ -1,7 +1,9 @@
 ﻿using Common.Lib.Core;
 using Common.Lib.Core.Context;
+using Common.Lib.Infrastructure;
 using Common.Lib.Services.Protobuf;
 using Grpc.Core;
+using System;
 
 namespace Common.Lib.Server.Protobuf
 {
@@ -107,6 +109,23 @@ namespace Common.Lib.Server.Protobuf
                                 .ExecuteGetEntitiesRequest(paramsCarrier.Operations);
 
             return new QueryEntitiesResult(result);
+        }
+
+        public override async Task<UnitOfWorkResult> RequestUnityOfWorkOperations(UnitOfWorkParamsCarrier paramsCarrier, ServerCallContext context)
+        {
+            Console.WriteLine("RequestUnityOfWorkOperations");
+            foreach (var action in paramsCarrier.UowActions)
+            {
+                Console.WriteLine("Action type " + action.ActionInfoType);
+                Console.WriteLine("Model type " + action.Change.EntityModelType + " id:" + action.Change.EntityId);
+
+                foreach(var cu in action.Change.GetChangeUnits())
+                {
+                    Console.WriteLine("property: " + cu.MetadataId + " value: " + cu.Value);
+                }
+            }
+
+            return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = true, Message = "llega bien al server" });
         }
 
         #region Get Value

@@ -3,27 +3,18 @@ using Common.Lib.Core;
 using Common.Lib.Core.Expressions;
 using Common.Lib.Core.Tracking;
 using Common.Lib.Services.ParamsCarriers;
+using System;
 
 namespace Common.Lib.Services.Protobuf
 {
-    public partial class QueryRepositoryParamsCarrier : IQueryRepositoryParamsCarrier
+    public partial class UnitOfWorkParamsCarrier : IUnitOfWorkParamsCarrier
     {
-        public IEnumerable<IQueryOperationInfo> Operations
-        {
-            get
-            {
-                return this.SOperations;
-            }
-        }
-        public QueryRepositoryParamsCarrier(Guid userId,
+        public UnitOfWorkParamsCarrier(Guid userId,
                                             string userToken,
                                             DateTime actionTime,
-                                            string repoTypeName,
-                                            List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations,
-                                            int nestingLevel)
+                                            IEnumerable<IUoWActInfo> actions)
         {
-            this.RepositoryType = repoTypeName;
-            this.NestingLevel = nestingLevel;
+
             this.ServiceInfo = new ParamsCarrierInfo()
             {
                 UserId = userId,
@@ -31,10 +22,7 @@ namespace Common.Lib.Services.Protobuf
                 ActionTime = actionTime
             };
 
-            foreach (var operation in operations)
-            {
-                SOperations.Add(new QueryOperationInfo((int)operation.Item1, operation.Item2));
-            }
+            UowActions = actions;
         }
 
         public Guid UserId
@@ -69,6 +57,20 @@ namespace Common.Lib.Services.Protobuf
             set
             {
                 this.ServiceInfo.ActionTime = value;
+            }
+        }
+
+        public IEnumerable<IUoWActInfo> UowActions
+        {
+            get
+            {
+                return SUowActions.ToList();
+            }
+            set
+            {
+                SUowActions.Clear();
+                foreach (var action in value)
+                    SUowActions.Add(new UowActionInfo(action));
             }
         }
     }

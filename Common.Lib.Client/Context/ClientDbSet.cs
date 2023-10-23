@@ -3,8 +3,6 @@ using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using Common.Lib.Services;
 using Common.Lib.Services.ParamsCarriers;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace Common.Lib.Core.Context
 {
@@ -24,8 +22,6 @@ namespace Common.Lib.Core.Context
 
         public async Task<ISaveResult<T>> AddAsync(T entity)
         {
-            //var output = new SaveResult<T>();
-
             var paramsCarrier = ParamsCarrierFactory
                                 .CreateSaveEntityParams(
                                         userId: UserId,
@@ -34,9 +30,6 @@ namespace Common.Lib.Core.Context
                                         entityInfo: entity.GetChanges());
 
             var response = await ServiceInvoker.AddNewEntityRequestAsync<T>(paramsCarrier);
-            //output.IsSuccess = response.IsSuccess;
-            //output.Message = response.Message;
-            //output.Value = response
 
             return await Task.FromResult(response);
         }

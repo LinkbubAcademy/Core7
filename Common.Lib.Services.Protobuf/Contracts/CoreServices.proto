@@ -8,6 +8,7 @@ service CoreServices
   rpc RequestUpdateEntity (SaveEntityParamsCarrier) returns (SaveResult);  
   rpc RequestDeleteEntity (DeleteEntityParamsCarrier) returns (DeleteResult);  
   rpc RequestParametricAction (ParametricActionParamsCarrier) returns (ProcessActionResult);
+  rpc RequestUnityOfWorkOperations (UnitOfWorkParamsCarrier) returns (UnitOfWorkResult);
 
   rpc QueryRepositoryForEntity(QueryRepositoryParamsCarrier) returns (QueryEntityResult);
   rpc QueryRepositoryForEntities(QueryRepositoryParamsCarrier) returns (QueryEntitiesResult);
@@ -64,6 +65,18 @@ message QueryExpressionInfo
 	repeated string sParameters = 5;
 }
 
+message UnitOfWorkParamsCarrier
+{	    
+	ParamsCarrierInfo ServiceInfo = 1;
+	repeated UowActionInfo sUowActions = 2;
+}
+
+message UowActionInfo
+{
+	EntityInfo sChange = 1;
+	int32 numActionInfoType = 5;
+}
+
 message SaveEntityParamsCarrier
 {
 	ParamsCarrierInfo ServiceInfo = 1;
@@ -104,9 +117,17 @@ message DeleteResult
 {	
   bool IsSuccess = 1;
   string Message = 2;
-  repeated string sErrors = 3;}
+  repeated string sErrors = 3;
+}
 
-  message SaveResult
+message UnitOfWorkResult
+{	
+  bool IsSuccess = 1;
+  string Message = 2;
+  repeated string sErrors = 3;
+}
+
+message SaveResult
 {	
   bool IsSuccess = 1;
   string Message = 2;
