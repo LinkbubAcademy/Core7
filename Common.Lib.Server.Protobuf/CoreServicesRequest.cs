@@ -113,17 +113,20 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<UnitOfWorkResult> RequestUnityOfWorkOperations(UnitOfWorkParamsCarrier paramsCarrier, ServerCallContext context)
         {
-            Console.WriteLine("RequestUnityOfWorkOperations");
-            foreach (var action in paramsCarrier.UowActions)
-            {
-                Console.WriteLine("Action type " + action.ActionInfoType);
-                Console.WriteLine("Model type " + action.Change.EntityModelType + " id:" + action.Change.EntityId);
+            //Console.WriteLine("RequestUnityOfWorkOperations");
+            //foreach (var action in paramsCarrier.UowActions)
+            //{
+            //    Console.WriteLine("Action type " + action.ActionInfoType);
+            //    Console.WriteLine("Model type " + action.Change.EntityModelType + " id:" + action.Change.EntityId);
 
-                foreach(var cu in action.Change.GetChangeUnits())
-                {
-                    Console.WriteLine("property: " + cu.MetadataId + " value: " + cu.Value);
-                }
-            }
+            //    foreach(var cu in action.Change.GetChangeUnits())
+            //    {
+            //        Console.WriteLine("property: " + cu.MetadataId + " value: " + cu.Value);
+            //    }
+            //}
+
+            using var uow = ContextFactory.Resolve<IUnitOfWork>();
+            var result = await uow.CommitAsync();
 
             return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = true, Message = "llega bien al server" });
         }
