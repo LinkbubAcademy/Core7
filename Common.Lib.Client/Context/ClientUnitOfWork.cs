@@ -31,7 +31,20 @@ namespace Common.Lib.Context
             });
         }
 
-        public async Task<IActionResult> CommitAsync()
+        public void AddEntityDelete(Entity entity)
+        {
+            UowActions.Add(new UoWActInfo()
+            {
+                Change = entity.GetChanges(),
+                ActionInfoType = ActionInfoTypes.Delete
+            });
+        }
+
+        public void Dispose()
+        {
+        }
+
+        public async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null)
         {
             Console.WriteLine("ClientUnitOfWork CommitAsync paramsCarrier");
             var paramsCarrier = ParamsCarrierFactory
@@ -45,8 +58,5 @@ namespace Common.Lib.Context
             return response;
         }
 
-        public void Dispose()
-        {
-        }
     }
 }

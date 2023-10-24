@@ -14,9 +14,9 @@ namespace Common.Lib.Core
 
         #region Save
 
-        public override async Task<ISaveResult<T>> SaveAsync<T>(IUnitOfWork? uow = null)
+        public override async Task<ISaveResult<T>> SaveAsync<T>()
         {
-            return await base.SaveAsync<T>(uow);
+            return await base.SaveAsync<T>();
         }
 
         #endregion

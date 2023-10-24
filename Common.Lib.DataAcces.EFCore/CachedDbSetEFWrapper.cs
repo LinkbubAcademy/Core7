@@ -16,20 +16,12 @@ namespace Common.Lib.DataAccess.EFCore
         public static MemoryDbSet<Entity>? CacheItems { get; set; }
         public bool BelongsToUnitOfWork { get; set; }
 
-        public abstract void InitCacheItems();
-
-        public abstract void UnloadFromMemoryPendingItems();
+        public abstract void InitCacheItems();              
         
     }
 
     public class CachedDbSetEFWrapper<T> : CachedDbSetEFWrapper, IDbSet<T> where T : Entity, new()
     {
-        Dictionary<Guid, T>? PendingToConfirmAddToCache { get; set; }
-
-        Dictionary<Guid, T>? PendingToConfirmUpdateToCache { get; set; }
-
-        List<T>? PendingToConfirmRemoveFromCache { get; set; }
-
         public int NestingLevel { get; set; }
 
         public DbSet<T>? DbSet { get; set; }
@@ -47,11 +39,6 @@ namespace Common.Lib.DataAccess.EFCore
 
         public void InitForUoW()
         {
-            BelongsToUnitOfWork = true;
-
-            PendingToConfirmAddToCache = new Dictionary<Guid, T>();
-            PendingToConfirmUpdateToCache = new Dictionary<Guid, T>();
-            PendingToConfirmRemoveFromCache = new List<T>();
         }
 
         #region CRUD
@@ -64,19 +51,10 @@ namespace Common.Lib.DataAccess.EFCore
         /// <exception cref="Exception"></exception>
         public ISaveResult<T> Add(T entity)
         {
-            var addedEntity = DbSet.Add(entity).Entity;
-
-            if (addedEntity == null)
-                return new SaveResult<T>() { IsSuccess = false };
-                            
-            if (PendingToConfirmAddToCache == null)
-                throw new Exception("PendingToConfirmAddToCache is null");
-                
-            PendingToConfirmAddToCache.Add(addedEntity.Id, addedEntity);
-            return new SaveResult<T>() { IsSuccess = false, Value = addedEntity };
+            return null;
         }
 
-        public async Task<ISaveResult<T>> AddAsync(T entity)
+        public virtual async Task<ISaveResult<T>> AddAsync(T entity)
         {
             var addedEntity = DbSet.Add(entity).Entity;
             var output = new SaveResult<T>();
@@ -96,7 +74,6 @@ namespace Common.Lib.DataAccess.EFCore
 
             output.Value = addedEntity;
             return output;
-
         }
 
         public ActionResult Update(T entity)
@@ -444,25 +421,7 @@ namespace Common.Lib.DataAccess.EFCore
             }
         }
 
-        public override void UnloadFromMemoryPendingItems()
-        {
-            foreach (var entity in PendingToConfirmAddToCache)
-            {
-                CacheItems.Delete(entity.Key);
-                CacheItems.Add(entity.Value);
-            }
-
-            foreach (var entity in PendingToConfirmUpdateToCache)
-            {
-                CacheItems.Delete(entity.Key);
-                CacheItems.Add(entity.Value);
-            }
-
-            foreach (var entity in PendingToConfirmRemoveFromCache)
-            {
-                CacheItems.Add(entity);
-            }
-        }
+        
     }
 }
 

@@ -9,16 +9,16 @@ namespace Common.Lib.Core.Context
         public bool IsServerMode { get; set; }
 
         protected readonly IServiceProvider ServiceProvider;
-        public IRepository<T> GetRepository<T>(IUnitOfWork? uow = null) where T : Entity, new()
+        public IRepository<T> GetRepository<T>() where T : Entity, new()
         {
-            if (uow != null && !IsServerMode)
-                throw new ArgumentException("You cannot instantiate a UoWRepository in Client Mode");
+            //if (uow != null && !IsServerMode)
+            //    throw new ArgumentException("You cannot instantiate a UoWRepository in Client Mode");
 
-            if (uow == null)
-                return (IRepository<T>)ServiceProvider.GetService(typeof(IRepository<T>));
+            //if (uow == null)
+            //    return (IRepository<T>)ServiceProvider.GetService(typeof(IRepository<T>));
 
             var output = (IUoWRepository<T>)ServiceProvider.GetService(typeof(IUoWRepository<T>));
-            output.UnitOfWork = uow;
+            //output.UnitOfWork = uow;
 
             return output;
         }

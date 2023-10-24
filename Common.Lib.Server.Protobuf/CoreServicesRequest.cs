@@ -88,7 +88,7 @@ namespace Common.Lib.Server.Protobuf
 
                 return await Task.FromResult(new ProcessActionResult(aResult));
             }
-            return await Task.FromResult(new ProcessActionResult() { IsSuccess =false });
+            return await Task.FromResult(new ProcessActionResult() { IsSuccess = false });
         }
 
         public override async Task<QueryEntityResult> QueryRepositoryForEntity(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
@@ -119,7 +119,7 @@ namespace Common.Lib.Server.Protobuf
             //    Console.WriteLine("Action type " + action.ActionInfoType);
             //    Console.WriteLine("Model type " + action.Change.EntityModelType + " id:" + action.Change.EntityId);
 
-            //    foreach(var cu in action.Change.GetChangeUnits())
+            //    foreach (var cu in action.Change.GetChangeUnits())
             //    {
             //        Console.WriteLine("property: " + cu.MetadataId + " value: " + cu.Value);
             //    }

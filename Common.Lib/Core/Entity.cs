@@ -36,7 +36,7 @@ namespace Common.Lib.Core
         public IContextFactory? ContextFactory { get; set; }
 
         public Func<Task<ISaveResult>>? SaveAction { get; set; }
-        public Func<Task<DeleteResult>>? DeleteAction { get; set; }
+        public Func<Task<IDeleteResult>>? DeleteAction { get; set; }
 
         public bool IsAlreadyAssigned { get; set; }
 
@@ -169,107 +169,109 @@ namespace Common.Lib.Core
 
         #region Save
 
-        public virtual async Task<IEnumerable<string>?> ValidateNew()
+        public virtual ISaveResult? Save(IUnitOfWork uow)
         {
-            return await Task.FromResult(default(IEnumerable<string>)); 
-        }
+            if (!ContextFactory.IsServerMode)
+            {
+                var formatValidation = StaticSaveValidation<Entity>();
+                if (formatValidation != null)
+                    return formatValidation;
+            }
 
-        public virtual async Task<IEnumerable<string>?> ValidateUpdate()
-        {
-            return await Task.FromResult(default(IEnumerable<string>));
-        }
-        public virtual async Task<IEnumerable<string>?> ValidateDelete()
-        {
-            return await Task.FromResult(default(IEnumerable<string>));
-        }
-
-
-        public virtual void Save(IUnitOfWork uow)
-        {
             uow.AddEntitySave(this);
+            return null;
         }
 
-        public virtual async Task<ISaveResult<T>> SaveAsync<T>(IUnitOfWork? uow = null) where T : Entity, new()
+        public virtual IDeleteResult? Delete(IUnitOfWork uow)
         {
-            if (this is not T entity)
-                return await Task.FromResult(new SaveResult<T>()
+            if (!ContextFactory.IsServerMode)
+            {
+                var formatValidation = StaticDeleteValidation<Entity>();
+                if (formatValidation != null)
+                    return formatValidation;
+            }
+
+            uow.AddEntityDelete(this);
+            return null;
+        }
+
+        public virtual ISaveResult<T>? StaticSaveValidation<T>() where T : Entity, new()
+        {
+            if (this is not T)
+                return new SaveResult<T>()
                 {
                     IsSuccess = false,
                     Message = $"Entity of type {this.GetType().Name} cannot be saved as {typeof(T).Name}"
-                });
+                };
 
             if (ContextFactory == null)
                 throw new ContextFactoryNullException("Entity", "SaveAsync");
 
-            if (uow != null && !ContextFactory.IsServerMode)
-                throw new ApplicationException("You cannot use SaveAsync with UnitOfWork in client mode. Use Save instead");
+            //if (uow != null && !ContextFactory.IsServerMode)
+            //    throw new ApplicationException("You cannot use SaveAsync with UnitOfWork in client mode. Use Save instead");
 
-            using var repo = ContextFactory.GetRepository<T>(uow) ?? 
-                throw new RepositoryNotRegisteredException(typeof(T));
+            return null;
 
-            var output = new SaveResult<T>();
-
-            if (IsNew || Id == default)
-            {
-                var createErrors = await ValidateNew();
-                if (createErrors == null)
-                {
-                    return await repo.AddAsync(entity);
-                }
-                else
-                {
-                    output.IsSuccess = false;
-                    createErrors.DoForeach(x => output.AddError(x));
-                }
-            }
-            else
-            {
-                var updateErrors = await ValidateUpdate();
-                if (updateErrors == null)
-                {
-                    return await repo.UpdateAsync(entity);
-                }
-                else
-                {
-                    output.IsSuccess = false;
-                    updateErrors.DoForeach(x => output.AddError(x));
-                }
-            }
-
-            return output;
         }
 
-        public virtual async Task<DeleteResult> DeleteAsync<T>(IUnitOfWork? uow = null) where T : Entity, new()
-        {           
+        public virtual Task<ISaveResult<T>?> DynamicSaveValidation<T>() where T : Entity, new()
+        {
+            return Task.FromResult(default(ISaveResult<T>?));
+        }
 
+        public virtual IDeleteResult StaticDeleteValidation<T>() where T : Entity, new()
+        {
             if (ContextFactory == null)
                 throw new ContextFactoryNullException("Entity", "DeleteAsync");
 
-            if (uow != null && !ContextFactory.IsServerMode)
-                throw new ApplicationException("You cannot use DeleteAsync with UnitOfWork in client mode. Use Save instead");
+            //if (uow != null && !ContextFactory.IsServerMode)
+            //    throw new ApplicationException("You cannot use DeleteAsync with UnitOfWork in client mode. Use Save instead");
 
-            using var repo = ContextFactory.GetRepository<T>(uow) ??
+            //using var repo = ContextFactory.GetRepository<T>() ??
+            //    throw new RepositoryNotRegisteredException(typeof(T));
+
+            return null;
+        }
+
+        public virtual Task<IDeleteResult?> DynamicDeleteValidation<T>() where T : Entity, new()
+        {
+            return Task.FromResult(default(IDeleteResult?));
+        }
+
+        public virtual async Task<ISaveResult<T>> SaveAsync<T>() where T : Entity, new()
+        {
+            var formatValidation = StaticSaveValidation<T>();
+
+            if(ContextFactory.IsServerMode)
+                formatValidation = await DynamicSaveValidation<T>();
+
+            if (formatValidation != null)
+                return formatValidation;
+
+            using var repo = ContextFactory.GetRepository<T>() ??
                 throw new RepositoryNotRegisteredException(typeof(T));
 
-            var output = new DeleteResult();
+            var entity = this as T;
 
-            var deleteErrors = await ValidateDelete();
-            if (deleteErrors == null)
-            {
-                var deleteResult = await repo.DeleteAsync(this.Id);
-                output.IsSuccess = deleteResult.IsSuccess;
+            return IsNew || Id == default ? 
+                await repo.AddAsync(entity) : 
+                await repo.UpdateAsync(entity);
+        }
 
-                if (!deleteResult.IsSuccess)
-                    output.AddError(deleteResult.Message);
-            }
-            else
-            {
-                output.IsSuccess = false;
-                deleteErrors.DoForeach(x => output.AddError(x));
-            }
+        public virtual async Task<IDeleteResult> DeleteAsync<T>() where T : Entity, new()
+        {
+            var formatValidation = StaticDeleteValidation<T>(); 
             
+            if (ContextFactory.IsServerMode)
+                formatValidation = await DynamicDeleteValidation<T>();
 
-            return output;
+            if (formatValidation != null)
+                return formatValidation;
+
+            using var repo = ContextFactory.GetRepository<T>() ??
+                throw new RepositoryNotRegisteredException(typeof(T));
+
+            return await repo.DeleteAsync(this.Id);
         }
 
         #endregion

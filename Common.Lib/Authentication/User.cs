@@ -121,19 +121,19 @@ namespace Common.Lib.Authentication
             return await this.SaveAsync<User>();
         }
 
-        public override async Task<ISaveResult<T>> SaveAsync<T>(IUnitOfWork? uow = null) 
+        public override async Task<ISaveResult<T>> SaveAsync<T>() 
         {
-            return await base.SaveAsync<T>(uow);
+            return await base.SaveAsync<T>();
         }        
 
-        public virtual async Task<DeleteResult> DeleteAsync()
+        public virtual async Task<IDeleteResult> DeleteAsync()
         {
             return await this.DeleteAsync<User>();
         }
 
-        public override async Task<DeleteResult> DeleteAsync<T>(IUnitOfWork? uow = null)
+        public override async Task<IDeleteResult> DeleteAsync<T>()
         {
-            return await base.DeleteAsync<T>(uow);
+            return await base.DeleteAsync<T>();
         }
 
         #endregion

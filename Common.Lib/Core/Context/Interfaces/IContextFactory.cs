@@ -1,6 +1,5 @@
 ﻿using Common.Lib.Core.Tracking;
 using Common.Lib.Infrastructure.Actions;
-using System;
 
 namespace Common.Lib.Core.Context
 {
@@ -19,7 +18,7 @@ namespace Common.Lib.Core.Context
 
         bool IsServerMode { get; set; }
 
-        IRepository<T> GetRepository<T>(IUnitOfWork? uow = null) where T : Entity, new();
+        IRepository<T> GetRepository<T>() where T : Entity, new();
         IServerRepository GetRepository(string repoTypeName);
 
         T NewModel<T>() where T : Entity, new();
