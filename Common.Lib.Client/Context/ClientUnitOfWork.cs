@@ -6,14 +6,13 @@ using Common.Lib.Services.ParamsCarriers;
 
 namespace Common.Lib.Context
 {
-    public class ClientUnitOfWork : IUnitOfWork
+    public class ClientUnitOfWork : UnitOfWork
     {
-        List<UoWActInfo> UowActions { get; set; } = new();
-
         IParamsCarrierFactory ParamsCarrierFactory { get; set; }
         IServiceInvoker ServiceInvoker { get; set; }
 
         static Guid UserId { get; set; } = Guid.NewGuid(); //todo: implement user auth
+
         static string UserToken { get; set; } = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 
         public ClientUnitOfWork(IServiceInvoker serviceInvoker, IParamsCarrierFactory paramsCarrierFactory)
@@ -22,41 +21,18 @@ namespace Common.Lib.Context
             ParamsCarrierFactory = paramsCarrierFactory;
         }
 
-        public void AddEntitySave(Entity entity)
+        public override async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null)
         {
-            UowActions.Add(new UoWActInfo()
-            {
-                Change = entity.GetChanges(),
-                ActionInfoType = ActionInfoTypes.Save
-            });
-        }
-
-        public void AddEntityDelete(Entity entity)
-        {
-            UowActions.Add(new UoWActInfo()
-            {
-                Change = entity.GetChanges(),
-                ActionInfoType = ActionInfoTypes.Delete
-            });
-        }
-
-        public void Dispose()
-        {
-        }
-
-        public async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null)
-        {
-            Console.WriteLine("ClientUnitOfWork CommitAsync paramsCarrier");
+            Log.WriteLine("ClientUnitOfWork CommitAsync paramsCarrier");
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateUnitOfWorkParams(userId: UserId,
                                         userToken: UserToken,
                                         actionTime: DateTime.Now,
                                         UowActions.Select(x => (IUoWActInfo)x));
 
-            Console.WriteLine("ClientUnitOfWork CommitAsync CommitUnitOfWorkAsync");
+            Log.WriteLine("ClientUnitOfWork CommitAsync CommitUnitOfWorkAsync");
             var response = await ServiceInvoker.CommitUnitOfWorkAsync(paramsCarrier);
             return response;
         }
-
     }
 }

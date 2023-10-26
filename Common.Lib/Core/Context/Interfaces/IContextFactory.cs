@@ -19,6 +19,9 @@ namespace Common.Lib.Core.Context
         bool IsServerMode { get; set; }
 
         IRepository<T> GetRepository<T>() where T : Entity, new();
+
+        IDbSet<T> GetDbSet<T>() where T : Entity, new();
+
         IServerRepository GetRepository(string repoTypeName);
 
         T NewModel<T>() where T : Entity, new();

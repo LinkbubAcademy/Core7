@@ -15,12 +15,12 @@ namespace Common.Lib.Core.Context
             //    throw new ArgumentException("You cannot instantiate a UoWRepository in Client Mode");
 
             //if (uow == null)
-            //    return (IRepository<T>)ServiceProvider.GetService(typeof(IRepository<T>));
+                return (IRepository<T>)ServiceProvider.GetService(typeof(IRepository<T>));
 
-            var output = (IUoWRepository<T>)ServiceProvider.GetService(typeof(IUoWRepository<T>));
+            //var output = (IUoWRepository<T>)ServiceProvider.GetService(typeof(IUoWRepository<T>));
             //output.UnitOfWork = uow;
 
-            return output;
+            //return output;
         }
 
         public T Resolve<T>()
@@ -82,6 +82,11 @@ namespace Common.Lib.Core.Context
         public TEntity ReconstructEntity<TEntity>(IEntityInfo entityInfo) where TEntity : Entity, new()
         {
             return (TEntity)ReconstructEntity(entityInfo);
+        }
+
+        public IDbSet<T> GetDbSet<T>() where T : Entity, new()
+        {
+            return (IDbSet<T>)ServiceProvider.GetService(typeof(IDbSet<T>));
         }
 
         public ContextFactory(IServiceProvider serviceProvider, string repositoryAssemblyName)

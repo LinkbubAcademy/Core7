@@ -7,8 +7,8 @@ namespace Common.Lib.Server.Context
 {
     public class ServerRepository<T> : GenericRepository<T>, IServerRepository where T : Entity, new()
     {
-        public ServerRepository(IDbSet<T> dbSet, IWorkflowManager wfm, IContextFactory contextFactory) 
-            : base(dbSet, wfm, contextFactory)
+        public ServerRepository(IWorkflowManager wfm, IContextFactory contextFactory) 
+            : base(wfm, contextFactory)
         {
 
         }

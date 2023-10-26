@@ -169,7 +169,7 @@ namespace Common.Lib.Core
 
         #region Save
 
-        public virtual ISaveResult? Save(IUnitOfWork uow)
+        public virtual ISaveResult Save(IUnitOfWork uow)
         {
             if (!ContextFactory.IsServerMode)
             {
@@ -179,7 +179,10 @@ namespace Common.Lib.Core
             }
 
             uow.AddEntitySave(this);
-            return null;
+            return new SaveResult<Entity>()
+            {
+                IsSuccess = true
+            };
         }
 
         public virtual IDeleteResult? Delete(IUnitOfWork uow)
@@ -192,7 +195,10 @@ namespace Common.Lib.Core
             }
 
             uow.AddEntityDelete(this);
-            return null;
+            return new DeleteResult()
+            {
+                IsSuccess = true
+            };
         }
 
         public virtual ISaveResult<T>? StaticSaveValidation<T>() where T : Entity, new()
@@ -278,7 +284,7 @@ namespace Common.Lib.Core
 
         #region Parametric actions
 
-        public virtual async Task<IProcessActionResult?> RequestParametricActionAsync(string repoType, string actionName, object[] actionParams)
+        public virtual async Task<IProcessActionResult?> RequestParametricActionAsync(string repoType, string actionName, object[] actionParams, IUnitOfWork uow)
         {
             if (ContextFactory == null)
                 throw new InvalidOperationException("you must get a model through the propel channels, ContextFactory is missing");
@@ -305,7 +311,7 @@ namespace Common.Lib.Core
             return result;
         }
 
-        public virtual async Task<IProcessActionResult?> ProcessActionAsync(string actionId, object[] actionParams)
+        public virtual async Task<IProcessActionResult?> ProcessActionAsync(string actionId, object[] actionParams, IUnitOfWork uow)
         {
             return null; 
         }

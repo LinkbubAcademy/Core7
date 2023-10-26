@@ -51,46 +51,57 @@ namespace Common.Lib.DataAccess.EFCore
         /// <exception cref="Exception"></exception>
         public ISaveResult<T> Add(T entity)
         {
-            return null;
+            var addedEntity = DbSet.Add(entity).Entity;
+
+            var output = new SaveResult<T>()
+            {
+                IsSuccess = addedEntity != null,
+                Value = addedEntity
+            };
+
+            return output;
+        }
+
+        public ISaveResult<T>? AddToCache(T entity)
+        {
+            var addToCache = CacheItems.Add(entity);
+            return !addToCache.IsSuccess ? addToCache.CastoTo<T>() : default;
         }
 
         public virtual async Task<ISaveResult<T>> AddAsync(T entity)
         {
-            var addedEntity = DbSet.Add(entity).Entity;
-            var output = new SaveResult<T>();
-
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
-            
-            var saveResult = await DbSetProvider.SaveChangesAsync();
-            output.IsSuccess = saveResult != -1;
 
-            if (output.IsSuccess)
+            var saveResult = Add(entity);
+            if (!saveResult.IsSuccess)
+                return saveResult;
+            
+            var commitResult = await DbSetProvider.SaveChangesAsync();
+            saveResult = new SaveResult<T>()
             {
-                var addToCache = CacheItems.Add(addedEntity);
-                if (!addToCache.IsSuccess)
-                    return addToCache.CastoTo<T>();                
+                IsSuccess = commitResult != -1,
+                Value = saveResult.Value
+            };
+
+            if (saveResult.IsSuccess)
+            {
+                var addToCacheError = AddToCache(saveResult.Value);
+                if (addToCacheError != null)
+                    return addToCacheError;
             }
 
-            output.Value = addedEntity;
-            return output;
+            return saveResult;
         }
 
-        public ActionResult Update(T entity)
+        public ISaveResult<T> Update(T entity)
         {
-            throw new NotImplementedException();
-        }
-
-        public async Task<ISaveResult<T>> UpdateAsync(T entity)
-        {
-            if (DbSetProvider == null)
-                throw new Exception("DbSetProvider is null");
-
-            var output = new SaveResult<T>();
-            var efEntity = await DbSet.FindAsync(entity.Id);
+            SaveResult<T> output;
+            var efEntity = DbSet.Find(entity.Id);
 
             if (efEntity == null)
             {
+                output = new SaveResult<T>();
                 output.IsSuccess = false;
                 output.AddError($"Entity with id {entity.Id} not found in db");
                 return output;
@@ -101,35 +112,57 @@ namespace Common.Lib.DataAccess.EFCore
             efEntity.ApplyChanges(changes);
 
             var updateEntity = DbSet.Update(efEntity).Entity;
-            var saveResult = await DbSetProvider.SaveChangesAsync();
-            output.IsSuccess = saveResult != -1;
 
-            if (output.IsSuccess)
+            output = new SaveResult<T>()
             {
-                var updateToCache = CacheItems.Update(updateEntity);
-                if (!updateToCache.IsSuccess)
-                    return updateToCache.CastoTo<T>();
-            }
+                IsSuccess = updateEntity == null,
+                Value = updateEntity
+            };
 
-            output.Value = updateEntity;
             return output;
         }
 
-        public async Task<ActionResult> Delete(Guid id)
+        public ISaveResult<T>? UpdateToCache(T entity)
         {
-            throw new NotImplementedException();
+            var updateToCache = CacheItems.Update(entity);
+            return !updateToCache.IsSuccess ? updateToCache.CastoTo<T>() : default;
         }
 
-        public async Task<IDeleteResult> DeleteAsync(Guid id)
+        public virtual async Task<ISaveResult<T>> UpdateAsync(T entity)
         {
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
 
-            T entityToRemove;
+            var updateResult = Update(entity);
 
-            if (CacheItems.Find(id).Value == null)
+            if (!updateResult.IsSuccess)
+                return updateResult;
+
+            var commitResult = await DbSetProvider.SaveChangesAsync();
+
+            updateResult = new SaveResult<T>
             {
-                entityToRemove = await DbSet.FindAsync(id);
+                IsSuccess = commitResult != -1,
+                Value = updateResult.Value
+            };
+
+            if (updateResult.IsSuccess)
+            {
+                var updateToCacheError = UpdateToCache(updateResult.Value);
+                if (updateToCacheError != null)
+                    return updateToCacheError;
+            }
+
+            return updateResult;
+        }
+
+        public IDeleteResult Delete(Guid id)
+        {
+            var entityToRemove = CacheItems.Find(id).Value as T;
+
+            if (entityToRemove == null)
+            {
+                entityToRemove = DbSet.Find(id);
 
                 if (entityToRemove == null)
                 {
@@ -141,25 +174,47 @@ namespace Common.Lib.DataAccess.EFCore
                     return error1;
                 }
             }
-            else
+
+            if (DbSet.Remove(entityToRemove).Entity != null)
+                return null;
+
+            return new DeleteResult()
             {
-                entityToRemove = await DbSet.FindAsync(id);
-            }
+                IsSuccess = false,
+                Message = $"DbContext cannot delete entity {id}"
+            };
+        }
 
-            var result = DbSet.Remove(entityToRemove).Entity != null;
-            //todo: handle possible error
+        public virtual async Task<IDeleteResult> DeleteAsync(Guid id)
+        {
+            if (DbSetProvider == null)
+                throw new Exception("DbSetProvider is null");
 
-            var efSaveChangesResult = await DbSetProvider.SaveChangesAsync();
-            var output = new DeleteResult();
-            output.IsSuccess = efSaveChangesResult != -1;
+            var deleteResult = Delete(id);
+
+            if (deleteResult != null)
+                return deleteResult;
+
+            var commitResult = await DbSetProvider.SaveChangesAsync();
+
+            var output = new DeleteResult
+            {
+                IsSuccess = commitResult != -1
+            };
 
             if (output.IsSuccess)
             {
-                var deleteFromCache = CacheItems.Delete(id);
-                if (!deleteFromCache.IsSuccess)
-                    return deleteFromCache;
+                var deleteFromCacheError = DeleteToCache(id);
+                if (deleteFromCacheError != null)
+                    return deleteFromCacheError;
             }
             return output;
+        }
+
+        public IDeleteResult DeleteToCache(Guid id)
+        {
+            var deleteFromCache = CacheItems.Delete(id);
+            return !deleteFromCache.IsSuccess ? deleteFromCache : default;
         }
 
         public QueryResult<T> Find(Guid id)

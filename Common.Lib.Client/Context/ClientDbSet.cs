@@ -87,6 +87,8 @@ namespace Common.Lib.Core.Context
                                         operations: operations,
                                         nestingLevel: NestingLevel);
 
+            Log.WriteLine("paramsCarrier Nesting Level: " + paramsCarrier.NestingLevel);
+
             var response = await ServiceInvoker.QueryRepositoryForEntity<T>(paramsCarrier);
 
             if (response.IsSuccess)
@@ -116,6 +118,7 @@ namespace Common.Lib.Core.Context
 
         public async Task<QueryResult<List<T>>> GetEntitiesAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations)
         {
+            //Console.WriteLine("ClientDbSet GetEntitiesAsync 1");
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
@@ -125,11 +128,15 @@ namespace Common.Lib.Core.Context
                                         operations: operations,
                                         nestingLevel: NestingLevel);
 
+            //Console.WriteLine("ClientDbSet GetEntitiesAsync 2");
             var response = await ServiceInvoker.QueryRepositoryForEntities<T>(paramsCarrier);
 
+
+            //Console.WriteLine("ClientDbSet GetEntitiesAsync 3");
             if (response.IsSuccess)
                 response.Value?.DoForeach(e => e.AssignChildren(response));
 
+            //Console.WriteLine("ClientDbSet GetEntitiesAsync 4");
             return response;
         }
 
@@ -137,7 +144,7 @@ namespace Common.Lib.Core.Context
         public Task<QueryResult<bool>> GetBoolValueAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations)
         {
             var e = (operations[0].Item2 as ExpressionsGroup).Expressions;
-            Console.WriteLine("ClientDbSet GetBoolValueAsync operations[0].expressions.Length: " + e.Length);
+            Log.WriteLine("ClientDbSet GetBoolValueAsync operations[0].expressions.Length: " + e.Length);
 
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(

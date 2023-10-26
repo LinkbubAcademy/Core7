@@ -21,7 +21,7 @@ namespace Common.Lib.Services.Protobuf
                 SExpressions.Add(new QueryExpressionInfo((IPropertySelector)expressions));
             else
             {
-                Console.WriteLine($"missing QueryOperationInfo.ctor expressions type: {expressions.GetType().FullName}");
+                Log.WriteLine($"missing QueryOperationInfo.ctor expressions type: {expressions.GetType().FullName}");
             }
         }
 

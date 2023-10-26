@@ -155,6 +155,7 @@ namespace Common.Lib.Core.Context
 
         public Task<QueryResult<List<T>>> ToListAsync()
         {
+            //Console.WriteLine("QueryAggregator ToListAsync");
             return DbSet.GetEntitiesAsync(Operations);
         }
 

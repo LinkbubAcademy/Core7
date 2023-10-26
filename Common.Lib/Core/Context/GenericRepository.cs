@@ -1,6 +1,7 @@
 ﻿using Common.Lib.Core.Expressions;
 using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace Common.Lib.Core.Context
@@ -23,16 +24,18 @@ namespace Common.Lib.Core.Context
         {
             get
             {
+                if (_dbSet == null)
+                    _dbSet = ContextFactory.GetDbSet<T>();
+
                 return _dbSet;
             }
         }
 
-        readonly IDbSet<T> _dbSet;
+        IDbSet<T> _dbSet;
 
-        public GenericRepository(IDbSet<T> dbSet, IWorkflowManager workflowManager, IContextFactory contextFactory)
+        public GenericRepository(IWorkflowManager workflowManager, IContextFactory contextFactory)
         {
             _workflowManager = workflowManager;
-            _dbSet = dbSet;
             ContextFactory = contextFactory;
         }
 
@@ -78,6 +81,7 @@ namespace Common.Lib.Core.Context
 
         public async Task<QueryResult<List<T>>> ToListAsync()
         {
+            Log.WriteLine("GenericRepository ToListAsync 1");
             return await Where(EmptyExpression.Create()).ToListAsync();
         }
 

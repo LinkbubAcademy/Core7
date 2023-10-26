@@ -95,13 +95,13 @@ namespace Common.Lib.DataAccess.EFCore
                 foreach (var wrapper in DbSetsWrappers)
                 {
                     wrapper.Value.InitCacheItems();
-                    Console.WriteLine("init cache for " + wrapper.Key.FullName);
+                    Log.WriteLine("init cache for " + wrapper.Key.FullName);
                 }
             }
             catch (Exception e1)
             {
                 var a = e1;
-                Console.WriteLine("failed to init cache");
+                Log.WriteLine("failed to init cache");
             }
         }
 

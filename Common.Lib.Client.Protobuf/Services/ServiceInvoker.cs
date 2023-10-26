@@ -101,7 +101,7 @@ namespace Common.Lib.Client.Services
             }
 
             var output = await Channel.RequestParametricActionAsync((ParametricActionParamsCarrier)paramsCarrier);
-            Console.WriteLine("RequestParametricActionAsync.IsSuccess " + output.IsSuccess + " serializedValue: " + output.Serialized);
+            Log.WriteLine("RequestParametricActionAsync.IsSuccess " + output.IsSuccess + " serializedValue: " + output.Serialized);
             return output;
         }
 
@@ -130,6 +130,8 @@ namespace Common.Lib.Client.Services
 
         public async Task<QueryResult<List<TEntity>>> QueryRepositoryForEntities<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new()
         {
+            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 1");
+
             if (paramsCarrier is not QueryRepositoryParamsCarrier)
             {
                 throw new ArgumentNullException($"IQueryRepositoryParamsCarrier paramsCarrier must come " +
@@ -137,8 +139,10 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
+            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 2");
             var result = await Channel.QueryRepositoryForEntitiesAsync((QueryRepositoryParamsCarrier)paramsCarrier);
 
+            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 3");
             return new QueryResult<List<TEntity>>()
             {
                 IsSuccess = result.ActionResult.IsSuccess,
@@ -312,6 +316,7 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
+            Log.WriteLine(msg: $"actions {paramsCarrier.UowActions.Count()}");
             var output = await Channel.RequestUnityOfWorkOperationsAsync((UnitOfWorkParamsCarrier)paramsCarrier);
             return output;
         }

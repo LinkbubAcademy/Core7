@@ -79,14 +79,19 @@ namespace Common.Lib.Server.Protobuf
                 var paramActionId = paramsCarrier.RepositoryType + "." + paramsCarrier.ParametricActionName;
                 var values = EntityMetadata.DeserializeParamActionValues(paramActionId, paramsCarrier.SerializedValues);
 
-                var aResult = await ent.ProcessActionAsync(paramActionId, values);
-                
+                var uow = ContextFactory.Resolve<IUnitOfWork>();
+                var aResult = await ent.ProcessActionAsync(paramActionId, values, uow);
+
                 ent.ContextFactory = null;
 
                 if (aResult == null)
                     return await Task.FromResult(new ProcessActionResult() { IsSuccess = false, Message="action not registered" });
+                if (aResult.IsSuccess)
+                {
+                    await uow.CommitAsync();
+                    return await Task.FromResult(new ProcessActionResult(aResult));
+                }
 
-                return await Task.FromResult(new ProcessActionResult(aResult));
             }
             return await Task.FromResult(new ProcessActionResult() { IsSuccess = false });
         }
@@ -113,22 +118,22 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<UnitOfWorkResult> RequestUnityOfWorkOperations(UnitOfWorkParamsCarrier paramsCarrier, ServerCallContext context)
         {
-            //Console.WriteLine("RequestUnityOfWorkOperations");
-            //foreach (var action in paramsCarrier.UowActions)
-            //{
-            //    Console.WriteLine("Action type " + action.ActionInfoType);
-            //    Console.WriteLine("Model type " + action.Change.EntityModelType + " id:" + action.Change.EntityId);
+            Log.WriteLine("RequestUnityOfWorkOperations");
+            foreach (var action in paramsCarrier.UowActions)
+            {
+                Log.WriteLine("Action type " + action.ActionInfoType);
+                Log.WriteLine("Model type " + action.Change.EntityModelType + " id:" + action.Change.EntityId);
 
-            //    foreach (var cu in action.Change.GetChangeUnits())
-            //    {
-            //        Console.WriteLine("property: " + cu.MetadataId + " value: " + cu.Value);
-            //    }
-            //}
+                foreach (var cu in action.Change.GetChangeUnits())
+                {
+                    Log.WriteLine("property: " + cu.MetadataId + " value: " + cu.Value);
+                }
+            }
 
             using var uow = ContextFactory.Resolve<IUnitOfWork>();
-            var result = await uow.CommitAsync();
+            var result = await uow.CommitAsync(paramsCarrier.UowActions);
 
-            return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = true, Message = "llega bien al server" });
+            return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = result.IsSuccess, Message = result.Message });
         }
 
         #region Get Value

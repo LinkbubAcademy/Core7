@@ -54,7 +54,7 @@ namespace Common.Lib.Client.Components
         {
             if (ViewModel == null)
             {
-                Console.WriteLine("ViewModel is null");
+                Log.WriteLine("ViewModel is null");
             }
             if (ShowErrorsAction == null)
                 await SendAlertAsync(string.Join("\n", ViewModel.Errors));

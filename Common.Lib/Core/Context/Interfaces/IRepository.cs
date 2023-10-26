@@ -4,6 +4,7 @@ namespace Common.Lib.Core.Context
 {
     public interface IRepository : IDisposable
     {
+        IContextFactory ContextFactory { get; set; }
         IWorkflowManager WorkflowManager { get; }
     }
 
