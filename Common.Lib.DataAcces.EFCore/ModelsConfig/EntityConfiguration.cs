@@ -13,7 +13,7 @@ namespace Common.Lib.DataAccess.EFCore
             builder.Ignore(x => x.DeleteAction);
             builder.Ignore(x => x.ContextFactory);
 
-            builder.ToTable("Entities");
+            builder.ToTable("entities");
         }
 
         public virtual void Configure<T1>(EntityTypeBuilder<T1> builder) where T1 : Entity
@@ -22,7 +22,7 @@ namespace Common.Lib.DataAccess.EFCore
             builder.Ignore(x => x.SaveAction);
             builder.Ignore(x => x.DeleteAction);
             builder.Ignore(x => x.ContextFactory);
-            builder.ToTable("Entities");
+            builder.ToTable("entities");
         }
     }
 

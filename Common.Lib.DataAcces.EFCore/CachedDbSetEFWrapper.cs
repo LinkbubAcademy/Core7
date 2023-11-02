@@ -115,7 +115,7 @@ namespace Common.Lib.DataAccess.EFCore
 
             output = new SaveResult<T>()
             {
-                IsSuccess = updateEntity == null,
+                IsSuccess = updateEntity != null,
                 Value = updateEntity
             };
 
@@ -175,13 +175,11 @@ namespace Common.Lib.DataAccess.EFCore
                 }
             }
 
-            if (DbSet.Remove(entityToRemove).Entity != null)
-                return null;
-
+            var deleteResult = DbSet.Remove(entityToRemove).Entity != null;
             return new DeleteResult()
             {
-                IsSuccess = false,
-                Message = $"DbContext cannot delete entity {id}"
+                IsSuccess = deleteResult,
+                Message = deleteResult ? string.Empty : $"DbContext cannot delete entity {id}"
             };
         }
 
@@ -192,7 +190,7 @@ namespace Common.Lib.DataAccess.EFCore
 
             var deleteResult = Delete(id);
 
-            if (deleteResult != null)
+            if (!deleteResult.IsSuccess)
                 return deleteResult;
 
             var commitResult = await DbSetProvider.SaveChangesAsync();
@@ -214,7 +212,7 @@ namespace Common.Lib.DataAccess.EFCore
         public IDeleteResult DeleteToCache(Guid id)
         {
             var deleteFromCache = CacheItems.Delete(id);
-            return !deleteFromCache.IsSuccess ? deleteFromCache : default;
+            return deleteFromCache;
         }
 
         public QueryResult<T> Find(Guid id)

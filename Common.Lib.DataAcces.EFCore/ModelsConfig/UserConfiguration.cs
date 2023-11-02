@@ -17,7 +17,7 @@ namespace Common.Lib.DataAccess.EFCore
         public override void Configure(EntityTypeBuilder<T> builder)
         {
             base.Configure<T>(builder);
-            builder.ToTable("Users");
+            builder.ToTable("users");
         }
     }
 }

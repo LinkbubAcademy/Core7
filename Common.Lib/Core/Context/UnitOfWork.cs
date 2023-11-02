@@ -1,8 +1,6 @@
-﻿using Common.Lib.Core;
-using Common.Lib.Core.Context;
-using Common.Lib.Infrastructure;
+﻿using Common.Lib.Infrastructure;
 
-namespace Common.Lib.Context
+namespace Common.Lib.Core.Context
 {
     public class UnitOfWork : IUnitOfWork
     {

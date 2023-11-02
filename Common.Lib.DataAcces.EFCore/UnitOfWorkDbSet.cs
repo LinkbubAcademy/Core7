@@ -54,7 +54,7 @@ namespace Common.Lib.DataAccess.EFCore
 
             if (deleteResult.IsSuccess && !PendingToConfirmRemoveFromCache.ContainsKey(id))
             {
-                PendingToConfirmRemoveFromCache.Remove(id);
+                PendingToConfirmRemoveFromCache.Add(id, null);
             }
 
             return Task.FromResult(deleteResult);
@@ -88,8 +88,8 @@ namespace Common.Lib.DataAccess.EFCore
             foreach (var e in PendingToConfirmUpdateToCache.Values)
                 UpdateToCache(e);
 
-            foreach (var e in PendingToConfirmRemoveFromCache.Values)
-                DeleteToCache(e.Id);
+            foreach (var id in PendingToConfirmRemoveFromCache.Keys)
+                DeleteToCache(id);
         }
     }
 }

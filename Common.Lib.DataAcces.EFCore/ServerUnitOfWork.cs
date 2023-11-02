@@ -1,5 +1,4 @@
-﻿using Common.Lib.Context;
-using Common.Lib.Core.Tracking;
+﻿using Common.Lib.Core.Tracking;
 using Common.Lib.DataAccess.EFCore;
 using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
@@ -57,9 +56,9 @@ namespace Common.Lib.Core.Context
 
                         if (change.IsNew || change.EntityId == default)
                         {
-                            var qrEexistingEntity = await currentRepo.FindAsync(change.EntityId);
+                            var qrExistingEntity = await currentRepo.FindAsync(change.EntityId);
 
-                            if (qrEexistingEntity.Value == null)
+                            if (qrExistingEntity.Value == null)
                             {
                                 var entityToAdd = this.ReconstructEntity(change);
                                 if (entityToAdd.Id == default)
@@ -87,10 +86,16 @@ namespace Common.Lib.Core.Context
                         }
 
                         break;
-                    default:
                     case ActionInfoTypes.Delete:
-                        //Todo
-                        throw new NotImplementedException();
+
+                        var qrEntityToRemove = await currentRepo.FindAsync(change.EntityId);
+                        if (qrEntityToRemove.IsSuccess && qrEntityToRemove.Value != null)
+                        {
+                            var entityToRemove = qrEntityToRemove.Value;
+                            entityToRemove.ContextFactory = this;
+                            entityToRemove.DeleteAction();
+                        }
+                        break;
                 }
 
 

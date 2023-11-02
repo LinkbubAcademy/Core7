@@ -26,6 +26,8 @@ namespace Common.Lib.Client.UI
 
         public Func<Func<Task>, Task>? InvokeAsync { get; set; }
 
+        public Action RefreshView { get; set; }
+
         public BaseViewModel(IContextFactory contextFactory) 
         {
             ContextFactory = contextFactory;
