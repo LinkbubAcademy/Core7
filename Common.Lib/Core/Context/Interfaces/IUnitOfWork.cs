@@ -6,7 +6,6 @@ namespace Common.Lib.Core.Context
     {
         void AddEntityDelete(Entity entity);
         void AddEntitySave(Entity entity);
-
         Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = default);
     }
 }
