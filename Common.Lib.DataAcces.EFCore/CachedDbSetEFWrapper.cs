@@ -193,7 +193,7 @@ namespace Common.Lib.DataAccess.EFCore
             if (!deleteResult.IsSuccess)
                 return deleteResult;
 
-            var commitResult = await DbSetProvider.SaveChangesAsync();
+            var commitResult = await DbSetProvider.SaveChangesAsync();                 
 
             var output = new DeleteResult
             {
@@ -202,9 +202,20 @@ namespace Common.Lib.DataAccess.EFCore
 
             if (output.IsSuccess)
             {
-                var deleteFromCacheError = DeleteToCache(id);
-                if (deleteFromCacheError != null)
-                    return deleteFromCacheError;
+                var entityToDelete = CacheItems.Find(id).Value;
+                var dependentEntities = await entityToDelete.GetDependentEntities();
+
+                var deleteFromCache = DeleteToCache(id);
+
+                if (deleteFromCache != null)
+                {
+                    if (deleteFromCache.IsSuccess)
+                    {
+                        foreach(var depId in dependentEntities)
+                            DeleteToCache(depId);
+                    }
+                    return deleteFromCache;
+                }
             }
             return output;
         }

@@ -80,7 +80,7 @@ namespace Common.Lib.DataAccess.EFCore
             }
         }
 
-        public void UpdateCache()
+        public async Task UpdateCache()
         {
             foreach(var e in PendingToConfirmAddToCache.Values)
                 AddToCache(e);
@@ -89,7 +89,16 @@ namespace Common.Lib.DataAccess.EFCore
                 UpdateToCache(e);
 
             foreach (var id in PendingToConfirmRemoveFromCache.Keys)
-                DeleteToCache(id);
+            {
+                var entityToDelete = CacheItems.Find(id).Value;
+                var dependentEntities = await entityToDelete.GetDependentEntities();
+
+                var result = DeleteToCache(id);
+
+                if(result.IsSuccess)
+                    foreach (var depId in dependentEntities)
+                        DeleteToCache(depId);
+            }
         }
     }
 }

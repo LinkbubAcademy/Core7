@@ -49,7 +49,10 @@ namespace Common.Lib.DataAccess.EFCore
 
         public Task<int> SaveChangesAsync()
         {
-            return base.SaveChangesAsync();
+            var output = base.SaveChangesAsync();
+            
+            
+            return output;
         }
 
         public new int SaveChanges()
@@ -84,8 +87,12 @@ namespace Common.Lib.DataAccess.EFCore
                 //case "Common.Lib.Authentication.User":
                 //    return UsersWrapper.Find(id);
             }
+            return null;            
+        }
+
+        public virtual Entity FindEntityFromDb(string type, Guid id)
+        {
             return null;
-            
         }
 
         public void InitWrappersCacheItems()

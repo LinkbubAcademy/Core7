@@ -99,6 +99,11 @@ namespace Common.Lib.Core
             action(this as T);
         }
 
+        public virtual void DetachRefernces()
+        {
+
+        }
+
         #endregion
 
         #region Changes
@@ -278,6 +283,11 @@ namespace Common.Lib.Core
                 throw new RepositoryNotRegisteredException(typeof(T));
 
             return await repo.DeleteAsync(this.Id);
+        }
+
+        public virtual Task<List<Guid>> GetDependentEntities()
+        {
+            return Task.FromResult(new List<Guid>());
         }
 
         #endregion

@@ -77,6 +77,7 @@ namespace Common.Lib.Core.Context
 
                             if (ue != null)
                             {
+                                ue.DetachRefernces();
                                 ue.SaveAction();
                             }
                             else
@@ -161,10 +162,17 @@ namespace Common.Lib.Core.Context
 
         public Entity ReconstructAndUpdateEntity(IEntityInfo entityInfo)
         {
-            var output = ContextFactory.ReconstructAndUpdateEntity(entityInfo);
-            output.ContextFactory = this;
+            var dbContext = ContextFactory.Resolve<CommonEfDbContext>();
+            var existingEntity = dbContext.FindEntityFromDb(entityInfo.EntityModelType, entityInfo.EntityId);
 
-            return output;
+            existingEntity.IsNew = false;
+            existingEntity.ApplyChanges(entityInfo.GetChangeUnits());
+            existingEntity.ContextFactory = this;
+            ////var output = ContextFactory.ReconstructAndUpdateEntity(entityInfo);
+            //output.ContextFactory = this;
+
+            //return existingEntity;
+            return existingEntity;
         }
 
         public TEntity ReconstructEntity<TEntity>(IEntityInfo entityInfo) where TEntity : Entity, new()

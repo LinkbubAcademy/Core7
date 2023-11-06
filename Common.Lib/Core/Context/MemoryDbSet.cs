@@ -86,7 +86,7 @@ namespace Common.Lib.Core.Context
                 output.AddError($"entity with {id} not found in cache");
                 return output;
             }
-
+            
             if (!Items.Remove(id, out _))
             {
                 output.AddError($"entity with {id} cannot be removed but it is in the cache");
@@ -94,6 +94,7 @@ namespace Common.Lib.Core.Context
             }
 
             output.IsSuccess = true;
+
             return output;
         }
 

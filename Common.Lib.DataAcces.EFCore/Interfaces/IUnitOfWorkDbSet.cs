@@ -2,6 +2,6 @@
 {
     public interface IUnitOfWorkDbSet
     {
-        void UpdateCache();
+        Task UpdateCache();
     }
 }
