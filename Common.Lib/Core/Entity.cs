@@ -33,6 +33,8 @@ namespace Common.Lib.Core
 
         public bool IsNew { get; set; } = true;
 
+        public int LastQueryNetingLevel { get; set; }
+
         public IContextFactory? ContextFactory { get; set; }
 
         public Func<Task<ISaveResult>>? SaveAction { get; set; }

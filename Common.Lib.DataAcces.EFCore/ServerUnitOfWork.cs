@@ -112,7 +112,7 @@ namespace Common.Lib.Core.Context
             if (result > 0)
             {
                 foreach(var dbSet in DbSets.Values)
-                    dbSet.UpdateCache();
+                    await dbSet.UpdateCache();
 
                 return new ActionResult()
                 {

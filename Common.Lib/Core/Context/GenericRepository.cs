@@ -17,6 +17,8 @@ namespace Common.Lib.Core.Context
             }
         }
 
+        public ILogHandler<T> LogHandler { get; set; }
+
         readonly IWorkflowManager _workflowManager;
 
 
@@ -33,10 +35,11 @@ namespace Common.Lib.Core.Context
 
         IDbSet<T> _dbSet;
 
-        public GenericRepository(IWorkflowManager workflowManager, IContextFactory contextFactory)
+        public GenericRepository(IWorkflowManager workflowManager, IContextFactory contextFactory, ILogHandler<T> logHandler = null)
         {
             _workflowManager = workflowManager;
             ContextFactory = contextFactory;
+            LogHandler = logHandler;
         }
 
         public IQueryAggregator<T> DeclareChildrenPolicy(int n)
@@ -53,6 +56,8 @@ namespace Common.Lib.Core.Context
                 entity.Id = Guid.NewGuid();
 
             var output = DbSet.AddAsync(entity);
+
+            LogHandler?.Log(entity);
 
             return output;
         }
