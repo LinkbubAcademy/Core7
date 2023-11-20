@@ -73,10 +73,11 @@ namespace Common.Lib.Core.Context
                         }
                         else
                         {
-                            var ue = this.ReconstructAndUpdateEntity(change);
+                            var qr = await this.ReconstructAndUpdateEntity(change);
 
-                            if (ue != null)
+                            if (qr.IsSuccess && qr.Value != null)
                             {
+                                var ue = qr.Value;
                                 ue.DetachRefernces();
                                 ue.SaveAction();
                             }
@@ -111,7 +112,7 @@ namespace Common.Lib.Core.Context
 
             if (result > 0)
             {
-                foreach(var dbSet in DbSets.Values)
+                foreach(var dbSet in DbSets.Values.ToList())
                     await dbSet.UpdateCache();
 
                 return new ActionResult()
@@ -160,7 +161,7 @@ namespace Common.Lib.Core.Context
             return output;
         }
 
-        public Entity ReconstructAndUpdateEntity(IEntityInfo entityInfo)
+        public async Task<QueryResult<Entity>> ReconstructAndUpdateEntity(IEntityInfo entityInfo)
         {
             var dbContext = ContextFactory.Resolve<CommonEfDbContext>();
             var existingEntity = dbContext.FindEntityFromDb(entityInfo.EntityModelType, entityInfo.EntityId);
@@ -172,7 +173,7 @@ namespace Common.Lib.Core.Context
             //output.ContextFactory = this;
 
             //return existingEntity;
-            return existingEntity;
+            return new QueryResult<Entity>() { IsSuccess = existingEntity != null, Value = existingEntity };
         }
 
         public TEntity ReconstructEntity<TEntity>(IEntityInfo entityInfo) where TEntity : Entity, new()

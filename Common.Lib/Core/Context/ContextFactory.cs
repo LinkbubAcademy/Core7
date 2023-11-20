@@ -1,5 +1,6 @@
 ﻿using Common.Lib.Core.Metadata;
 using Common.Lib.Core.Tracking;
+using Common.Lib.Infrastructure.Actions;
 
 namespace Common.Lib.Core.Context
 {
@@ -66,17 +67,23 @@ namespace Common.Lib.Core.Context
             return entity;
         }
 
-        public Entity ReconstructAndUpdateEntity(IEntityInfo entityInfo)
+        public async Task<QueryResult<Entity>> ReconstructAndUpdateEntity(IEntityInfo entityInfo)
         {
             using var repo = GetRepository(entityInfo.EntityModelType);
-            var entity = repo.FindAsync(entityInfo.EntityId).Result.Value;
+
+            var qre = await repo.FindAsync(entityInfo.EntityId);
+
+            if (!qre.IsSuccess)
+                return qre;
+
+            var entity = qre.Value;
 
             entity.Id = entityInfo.EntityId;
             entity.ContextFactory = this;
 
             var changes = entityInfo.GetChangeUnits().OrderBy(x => x.MetadataId).ToList();
             entity.ApplyChanges(changes);
-            return entity;
+            return new QueryResult<Entity>() { IsSuccess = true, Value = entity };
         }
 
         public TEntity ReconstructEntity<TEntity>(IEntityInfo entityInfo) where TEntity : Entity, new()

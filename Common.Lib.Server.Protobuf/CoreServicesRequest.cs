@@ -18,27 +18,43 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<SaveResult> RequestAddNewEntity(SaveEntityParamsCarrier paramsCarrier, ServerCallContext context)
         {
-            var entity = ContextFactory.ReconstructEntity(paramsCarrier.EntityInfo);
-            entity.Id = paramsCarrier.EntityInfo.EntityId;
+            try
+            {
+                var entity = ContextFactory.ReconstructEntity(paramsCarrier.EntityInfo);
+                entity.Id = paramsCarrier.EntityInfo.EntityId;
 
-            var sr1 = entity.SaveAction != null ?
-                            await entity.SaveAction() :
-                            new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
-            
-            return await Task.FromResult(new SaveResult(sr1));
+                var sr1 = entity.SaveAction != null ?
+                                await entity.SaveAction() :
+                                new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
+
+                return await Task.FromResult(new SaveResult(sr1));
+            }
+            catch(Exception ex)
+            {
+                return await Task.FromResult(new SaveResult(false, ex.Message));
+            }
         }
 
         public override async Task<SaveResult> RequestUpdateEntity(SaveEntityParamsCarrier paramsCarrier, ServerCallContext context)
         {
-            var entity = ContextFactory.ReconstructAndUpdateEntity(paramsCarrier.EntityInfo);
-            entity.IsNew = false;
-            entity.Id = paramsCarrier.EntityInfo.EntityId;
+            var qre = await ContextFactory.ReconstructAndUpdateEntity(paramsCarrier.EntityInfo);
 
-            var sr1 = entity.SaveAction != null ?
-                            await entity.SaveAction() :
-                            new Infrastructure.Actions.SaveResult<Entity> () { IsSuccess = false, Message = "Save Action not added" };
+            if (qre.IsSuccess)
+            {
+                var entity = qre.Value;
+                entity.IsNew = false;
+                entity.Id = paramsCarrier.EntityInfo.EntityId;
 
-            return await Task.FromResult(new SaveResult(sr1));
+                var sr1 = entity.SaveAction != null ?
+                                await entity.SaveAction() :
+                                new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
+
+                return new SaveResult(sr1);
+            }
+            else
+            {
+                return await RequestAddNewEntity(paramsCarrier, context);
+            }
         }
 
         public override async Task<DeleteResult> RequestDeleteEntity(DeleteEntityParamsCarrier paramsCarrier, ServerCallContext context)

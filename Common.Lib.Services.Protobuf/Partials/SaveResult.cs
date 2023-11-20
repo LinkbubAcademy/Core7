@@ -20,6 +20,12 @@ namespace Common.Lib.Services.Protobuf
             qr?.ReferencedEntities.DoForeach(e => SReferencedEntities.Add(e.Key.ToString(), new EntityInfo(e.Value.GetChanges())));
         }
 
+        public SaveResult(bool isSuccess, string message)
+        {
+            IsSuccess = isSuccess;
+            Message = message;
+            Errors = new List<string>();
+        }
 
         public IEnumerable<string> Errors
         {

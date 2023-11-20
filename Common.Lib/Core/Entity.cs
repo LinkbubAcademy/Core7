@@ -10,12 +10,20 @@ namespace Common.Lib.Core
 {
     public partial class Entity
     {
+        private Guid id;
         #region Persisted properties
 
         /// <summary>
         /// Entity unique Id
         /// </summary>
-        public Guid Id { get; set; }
+        public Guid Id 
+        { 
+            get => id; 
+            set
+            {
+                id = value;
+            }
+        }
 
         public DateTime CreatedOn { get; set; }
 
@@ -131,7 +139,7 @@ namespace Common.Lib.Core
 
             if (Origin == null)
             {
-                this.CreatedOn = DateTime.Now;
+                this.CreatedOn = this.CreatedOn != default ? this.CreatedOn : DateTime.Now;
                 output.AddChange(EntityMetadata.CreatedOn, this.CreatedOn);
             }
 
