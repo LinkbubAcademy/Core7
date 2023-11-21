@@ -95,6 +95,16 @@ namespace Common.Lib.Core
             return output;
         }
 
+        public virtual async Task<T> CloneTo<T>() where T : Entity, new()
+        {
+            using var repo = ContextFactory.GetRepository<T>();
+            var qr1 = await repo.FindAsync(Id);
+            if (qr1.IsSuccess)
+                return qr1.Value.Clone<T>();
+            else
+                return null;
+        }
+
         public virtual Task IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
         {
             return Task.CompletedTask;
