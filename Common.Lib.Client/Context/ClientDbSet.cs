@@ -131,6 +131,8 @@ namespace Common.Lib.Core.Context
             //Console.WriteLine("ClientDbSet GetEntitiesAsync 2");
             var response = await ServiceInvoker.QueryRepositoryForEntities<T>(paramsCarrier);
 
+            //Log.WriteLine("Total main entities: " + response.Value.Count + " total referenced:" + response.ReferencedEntities.Count);
+
 
             //Console.WriteLine("ClientDbSet GetEntitiesAsync 3");
             if (response.IsSuccess)

@@ -120,7 +120,7 @@ namespace Common.Lib.Client.Services
             {
                 IsSuccess = result.ActionResult.IsSuccess,
                 Message = result.ActionResult.Message,
-                Value = ContextFactory.ReconstructEntity<TEntity>(result.SValue),
+                Value = result.ActionResult.IsSuccess ? ContextFactory.ReconstructEntity<TEntity>(result.SValue) : default,
                 ReferencedEntities = result
                             .SReferencedEntities
                             .ToDictionary(x => Guid.Parse(x.Key),
@@ -130,7 +130,7 @@ namespace Common.Lib.Client.Services
 
         public async Task<QueryResult<List<TEntity>>> QueryRepositoryForEntities<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new()
         {
-            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 1");
+            //Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 1");
 
             if (paramsCarrier is not QueryRepositoryParamsCarrier)
             {
@@ -139,15 +139,17 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
-            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 2");
+            //Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 2");
             var result = await Channel.QueryRepositoryForEntitiesAsync((QueryRepositoryParamsCarrier)paramsCarrier);
 
-            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 3");
+            //Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 3");
+            var value = result.SValue.Select(x => ContextFactory.ReconstructEntity<TEntity>(x)).ToList();
+            
             return new QueryResult<List<TEntity>>()
             {
                 IsSuccess = result.ActionResult.IsSuccess,
                 Message = result.ActionResult.Message,
-                Value = result.SValue.Select(x => ContextFactory.ReconstructEntity<TEntity>(x)).ToList(),
+                Value = value,
                 ReferencedEntities = result
                             .SReferencedEntities
                             .ToDictionary(x => Guid.Parse(x.Key), 

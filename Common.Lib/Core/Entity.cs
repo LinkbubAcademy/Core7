@@ -89,7 +89,9 @@ namespace Common.Lib.Core
                 Origin = this,
                 Id = Id,
                 ContextFactory = ContextFactory,
-                IsNew = false
+                IsNew = false,
+                CreatedOn = CreatedOn,
+                UpdatedOn = UpdatedOn
             };
 
             return output;

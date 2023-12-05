@@ -56,6 +56,19 @@ namespace Common.Lib.Core.Context
 
         public Entity ReconstructEntity(IEntityInfo entityInfo)
         {            
+            try
+            {
+                var entity2 = MetadataHandler.ModelsConstructors[entityInfo.EntityModelType]();
+            }
+            catch (Exception ex)
+            {
+                Log.WriteLine(ex.Message);
+                Log.WriteLine("entityInfo is null: " + (entityInfo == null).ToString());
+
+                if (entityInfo != null)
+                    Log.WriteLine(entityInfo.EntityModelType);
+            }
+
             var entity = MetadataHandler.ModelsConstructors[entityInfo.EntityModelType]();
 
             entity.Id = entityInfo.EntityId;
