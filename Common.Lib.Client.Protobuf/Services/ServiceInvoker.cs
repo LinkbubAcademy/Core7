@@ -120,7 +120,7 @@ namespace Common.Lib.Client.Services
             {
                 IsSuccess = result.ActionResult.IsSuccess,
                 Message = result.ActionResult.Message,
-                Value = result.ActionResult.IsSuccess ? ContextFactory.ReconstructEntity<TEntity>(result.SValue) : default,
+                Value = result.ActionResult.IsSuccess && result.SValue != null ? ContextFactory.ReconstructEntity<TEntity>(result.SValue) : default,
                 ReferencedEntities = result
                             .SReferencedEntities
                             .ToDictionary(x => Guid.Parse(x.Key),

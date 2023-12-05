@@ -209,10 +209,10 @@ namespace Common.Lib.Core.Context
                         ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.Any:
                         output = new QueryResult<bool>(source.Any(condition));
@@ -269,10 +269,10 @@ namespace Common.Lib.Core.Context
                         ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.Count:
                         output = new QueryResult<int>(source.Count(condition));
@@ -337,10 +337,10 @@ namespace Common.Lib.Core.Context
                         ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.Max:
                         output = new QueryResult<DateTime>(source.Max(expDateTimeBuilder.CreateSelector<T>()));
@@ -393,10 +393,10 @@ namespace Common.Lib.Core.Context
                         ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.Max:
                         output = new QueryResult<double>(source.Max(expIntBuilder.CreateSelector<T>()));
@@ -453,10 +453,10 @@ namespace Common.Lib.Core.Context
                         ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.SelectOne:
                         var value = ProcessSelect<Guid>(ref source, expBuilder as IPropertySelector<Guid>, vType).First();
@@ -500,10 +500,10 @@ namespace Common.Lib.Core.Context
                         ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.SelectOne:
                         var value = ProcessSelect<string>(ref source, expBuilder as IPropertySelector<string>, vType).First();
@@ -543,12 +543,12 @@ namespace Common.Lib.Core.Context
                         break;
                     case QueryTypes.OrderBy:
                         propSel = CastToPropertySelecter(expBuilder);
-                        ProcessOrderBy(ref source, propSel, propSel.PropertyType);
+                        ProcessOrderBy(ref source, propSel);
                         break;
 
                     case QueryTypes.OrderByDesc:
                         propSel = CastToPropertySelecter(expBuilder);
-                        ProcessOrderByDesc(ref source, propSel, propSel.PropertyType);
+                        ProcessOrderByDesc(ref source, propSel);
                         break;
 
                     case QueryTypes.Select:
@@ -595,10 +595,10 @@ namespace Common.Lib.Core.Context
                             ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
 
                     default:
@@ -636,10 +636,10 @@ namespace Common.Lib.Core.Context
                             ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
 
                     case QueryTypes.Find:
@@ -654,8 +654,8 @@ namespace Common.Lib.Core.Context
                     case QueryTypes.LastOrDefault:
                         output.IsSuccess = true;
                         e = condition == null ?
-                                            source.OfType<TOut>().Cast<T>().FirstOrDefault() :
-                                            source.OfType<TOut>().Cast<T>().FirstOrDefault(condition);
+                                            source.OfType<TOut>().Cast<T>().LastOrDefault() :
+                                            source.OfType<TOut>().Cast<T>().LastOrDefault(condition);
 
                         output.Value = e as TOut;
                         return Task.FromResult(output);
@@ -696,10 +696,10 @@ namespace Common.Lib.Core.Context
                             ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
 
                     default:
@@ -732,10 +732,10 @@ namespace Common.Lib.Core.Context
                         ProcessWhere(ref source, expBuilder as IQueryExpression<bool>);
                         break;
                     case QueryTypes.OrderBy:
-                        ProcessOrderBy(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderBy(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.OrderByDesc:
-                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector, vType);
+                        ProcessOrderByDesc(ref source, expBuilder as IPropertySelector);
                         break;
                     case QueryTypes.Find: //Todo: place Find in its proper place to get by dictionary key
                     case QueryTypes.FirstOrDefault:
@@ -749,8 +749,8 @@ namespace Common.Lib.Core.Context
                     case QueryTypes.LastOrDefault:
                         output.IsSuccess = true;
                         output.Value = condition == null ?
-                                            source.FirstOrDefault() :
-                                            source.FirstOrDefault(condition);
+                                            source.LastOrDefault() :
+                                            source.LastOrDefault(condition);
 
                         return Task.FromResult(output);
 
@@ -786,9 +786,9 @@ namespace Common.Lib.Core.Context
             source = source.Where(condition ?? (x => true)).AsQueryable();
         }
 
-        void ProcessOrderBy(ref IQueryable<T> source, IPropertySelector selector, ValueTypes vType)
-        {
-            switch (vType)
+        void ProcessOrderBy(ref IQueryable<T> source, IPropertySelector selector)
+        {            
+            switch (selector.PropertyType)
             {
                 case ValueTypes.String:
                     source = source
@@ -835,9 +835,9 @@ namespace Common.Lib.Core.Context
             }
         }
 
-        void ProcessOrderByDesc(ref IQueryable<T> source, IPropertySelector selector, ValueTypes vType)
+        void ProcessOrderByDesc(ref IQueryable<T> source, IPropertySelector selector)
         {
-            switch (vType)
+            switch (selector.PropertyType)
             {
                 case ValueTypes.String:
                     source = source
