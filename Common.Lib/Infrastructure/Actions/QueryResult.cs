@@ -62,6 +62,10 @@ namespace Common.Lib.Infrastructure.Actions
                         {
                             output.Serialized = Value.ToString();
                         }
+                        else if(className =="Bool")
+                        {
+                            output.Serialized = Value.ToString();
+                        }
                         break;
                     case IProcessActionResult.OutputTypes.Dto:
                         break;

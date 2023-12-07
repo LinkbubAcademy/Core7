@@ -22,18 +22,23 @@ namespace Common.Lib.Infrastructure
 
         public IActionResult ToQueryResultSimpleType()
         {
+            // todo: completar
             IActionResult output = null;
             switch (OutputClassName)
             {
                 case "Guid":
-                    output = new QueryResult<Guid>() { Value = Guid.Parse(Serialized) };
+                    output = new QueryResult<Guid>() { IsSuccess = this.IsSuccess, Value = Guid.Parse(Serialized) };
+                    break;
+                case "Bool":
+                    output = new QueryResult<bool>() { IsSuccess = this.IsSuccess, Value = Serialized == "True" };
                     break;
                 default:
+                    Log.WriteLine(OutputClassName);
                     return new QueryResult();
 
             }
 
-            output.Message = Message;   
+            output.Message = Message;
             output.IsSuccess = IsSuccess;
             output.AddErrors(Errors);
 
