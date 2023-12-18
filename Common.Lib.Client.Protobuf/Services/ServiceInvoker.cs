@@ -49,6 +49,9 @@ namespace Common.Lib.Client.Services
                 //                            x => ContextFactory.ReconstructEntity(x.Value))
             };
 
+            if (result.Errors.Count() > 0)
+                output.AddErrors(result.Errors);
+            
             return output;
         }
 
@@ -73,6 +76,9 @@ namespace Common.Lib.Client.Services
                 //            .ToDictionary(x => Guid.Parse(x.Key),
                 //                            x => ContextFactory.ReconstructEntity(x.Value))
             };
+
+            if (result.Errors.Count() > 0)
+                output.AddErrors(result.Errors);
 
             return output;
         }

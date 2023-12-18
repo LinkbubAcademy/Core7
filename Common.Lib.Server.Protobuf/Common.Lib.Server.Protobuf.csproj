@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Core.Api" Version="2.55.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.59.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.Protobuf.deps.json&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.Protobuf.dll&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.Server.Protobuf.pdb&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;" />
+    <Exec Command="xcopy /Y &quot;$(ProjectDir)bin\debug\net8.0\Common.Lib.Server.Protobuf.deps.json&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net8.0\Common.Lib.Server.Protobuf.dll&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net8.0\Common.Lib.Server.Protobuf.pdb&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;" />
   </Target>
 
 </Project>

@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.deps.json&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.dll&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net7.0\Common.Lib.pdb&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;" />
+    <Exec Command="xcopy /Y &quot;$(ProjectDir)bin\debug\net8.0\Common.Lib.deps.json&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net8.0\Common.Lib.dll&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;&#xD;&#xA;xcopy /Y &quot;$(ProjectDir)bin\debug\net8.0\Common.Lib.pdb&quot; &quot;$(SolutionDir)..\Libraries\Core7\&quot;" />
   </Target>
 
   <ItemGroup>

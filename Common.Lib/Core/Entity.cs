@@ -278,7 +278,7 @@ namespace Common.Lib.Core
             if(ContextFactory.IsServerMode)
                 formatValidation = await DynamicSaveValidation<T>();
 
-            if (formatValidation != null)
+            if (formatValidation != null && !formatValidation.IsSuccess)
                 return formatValidation;
 
             using var repo = ContextFactory.GetRepository<T>() ??
