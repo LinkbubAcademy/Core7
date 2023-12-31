@@ -116,12 +116,17 @@ namespace Common.Lib.Core
         {            
         }
 
+        public virtual void AssignParents(Dictionary<Guid, Entity> uowEntities)
+        {
+
+        }
+
         public void Do<T>(Action<T> action) where T : Entity, new()
         {
             action(this as T);
         }
 
-        public virtual void DetachRefernces()
+        public virtual void DetachReferences()
         {
 
         }

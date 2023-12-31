@@ -10,6 +10,8 @@ namespace Common.Lib.Core.Context
         public IContextFactory ContextFactory { get; set; }
         public IDbSetProvider DbSetProvider { get; set; }
 
+        public Dictionary<Guid, Entity> EntitiesInUoW { get; set; } = new();
+
         public bool IsServerMode
         {
             get
@@ -35,7 +37,7 @@ namespace Common.Lib.Core.Context
                 
             var output = new QueryResult();
 
-            var entities = new List<object>();
+            var entities = new Dictionary<Guid, Entity>();
 
             var repos = new Dictionary<string,  IServerRepository>();
 
@@ -60,7 +62,9 @@ namespace Common.Lib.Core.Context
 
                             if (qrExistingEntity.Value == null)
                             {
-                                var entityToAdd = this.ReconstructEntity(change);
+                                var entityToAdd = this.ReconstructEntity(change, entities);
+                                entities.Add(change.EntityId, entityToAdd);
+
                                 if (entityToAdd.Id == default)
                                     entityToAdd.Id = change.EntityId != default ? change.EntityId : Guid.NewGuid();
 
@@ -73,12 +77,17 @@ namespace Common.Lib.Core.Context
                         }
                         else
                         {
-                            var qr = await this.ReconstructAndUpdateEntity(change);
+                            var qr = await this.ReconstructAndUpdateEntity(change, entities);
 
                             if (qr.IsSuccess && qr.Value != null)
                             {
                                 var ue = qr.Value;
-                                ue.DetachRefernces();
+                                if (entities.ContainsKey(ue.Id))
+                                    entities[ue.Id] = ue;
+                                else
+                                    entities.Add(ue.Id, ue);
+
+                                ue.DetachReferences();
                                 ue.SaveAction();
                             }
                             else
@@ -153,10 +162,17 @@ namespace Common.Lib.Core.Context
             return output;
         }
 
+        public Entity ReconstructEntity(IEntityInfo entityInfo, Dictionary<Guid, Entity> entitiesInUoW)
+        {
+            EntitiesInUoW = entitiesInUoW;
+            return ReconstructEntity(entityInfo);
+        }
+
         public Entity ReconstructEntity(IEntityInfo entityInfo)
         {
             var output = ContextFactory.ReconstructEntity(entityInfo);
             output.ContextFactory = this;
+            output.AssignParents(EntitiesInUoW);
 
             return output;
         }
@@ -169,11 +185,15 @@ namespace Common.Lib.Core.Context
             existingEntity.IsNew = false;
             existingEntity.ApplyChanges(entityInfo.GetChangeUnits());
             existingEntity.ContextFactory = this;
-            ////var output = ContextFactory.ReconstructAndUpdateEntity(entityInfo);
-            //output.ContextFactory = this;
+            existingEntity.AssignParents(EntitiesInUoW);
 
-            //return existingEntity;
             return new QueryResult<Entity>() { IsSuccess = existingEntity != null, Value = existingEntity };
+        }
+
+        public async Task<QueryResult<Entity>> ReconstructAndUpdateEntity(IEntityInfo entityInfo, Dictionary<Guid, Entity> entitiesInUoW)
+        {
+            EntitiesInUoW = entitiesInUoW;
+            return await ReconstructAndUpdateEntity(entityInfo);
         }
 
         public TEntity ReconstructEntity<TEntity>(IEntityInfo entityInfo) where TEntity : Entity, new()
