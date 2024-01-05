@@ -578,6 +578,7 @@ namespace Common.Lib.Core.Context
         public Task<QueryResult<List<TOut>>> GetEntitiesAsync<TOut>(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> Operations) where TOut : T
         {
             var source = Items.Values.OfType<TOut>().Cast<T>().AsQueryable();
+            var z = source.ToList();
             var output = new QueryResult<List<TOut>>();
 
             foreach (var tuple in Operations)
@@ -607,6 +608,7 @@ namespace Common.Lib.Core.Context
             }
 
             output.IsSuccess = true;
+            var a = source.ToList();
             output.Value = source.OfType<TOut>().ToList();
 
             return Task.FromResult(output);
