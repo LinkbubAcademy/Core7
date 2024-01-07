@@ -6,6 +6,7 @@ namespace Common.Lib.Core.Metadata
     public static class MetadataHandler
     {
         public static Dictionary<string, Dictionary<int, ValueTypes>> EntitiesMetadataTypes { get; private set; } = new Dictionary<string, Dictionary<int, ValueTypes>>();
+        public static Dictionary<string, Dictionary<int, string>> EntitiesMetadataNames { get; private set; } = new Dictionary<string, Dictionary<int, string>>();
 
         public static Dictionary<string, Func<Entity>> ModelsConstructors { get; set; } = new Dictionary<string, Func<Entity>>();
         public static Dictionary<string, Func<string[], IQueryExpression>> QueryExpressionConstructors { get; set; } = new Dictionary<string, Func<string[], IQueryExpression>>();

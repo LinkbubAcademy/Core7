@@ -291,9 +291,11 @@ namespace Common.Lib.Core
 
             var entity = this as T;
 
-            return IsNew || Id == default ? 
+            var output = IsNew || Id == default ? 
                 await repo.AddAsync(entity) : 
                 await repo.UpdateAsync(entity);
+
+            return output;
         }
 
         public virtual async Task<IDeleteResult> DeleteAsync<T>() where T : Entity, new()
@@ -370,11 +372,18 @@ namespace Common.Lib.Core
     {
         #region metadata maps
 
-        public static Dictionary<int, ValueTypes> MetadataMaps { get; set; } = new Dictionary<int, ValueTypes>()
+        public static Dictionary<int, ValueTypes> MetadataMaps { get; set; } = new()
         {
             { EntityMetadata.Id, ValueTypes.Guid },
             { EntityMetadata.CreatedOn, ValueTypes.DateTime },
             { EntityMetadata.UpdatedOn, ValueTypes.DateTime }
+        };
+
+        public static Dictionary<int, string> MetadataNames { get; set; } = new()
+        {
+            { EntityMetadata.Id, "Entity.Id" },
+            { EntityMetadata.CreatedOn, "Entity.CreatedOn" },
+            { EntityMetadata.UpdatedOn, "Entity.UpdatedOn"  }
         };
 
         public static RolActionMap EntityRolesMap

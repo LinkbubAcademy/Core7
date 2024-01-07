@@ -164,6 +164,27 @@ namespace Common.Lib.Authentication
         }
         static Dictionary<int, ValueTypes> metadataMaps = new Dictionary<int, ValueTypes>();
 
+        public static new Dictionary<int, string> MetadataNames
+        {
+            get
+            {
+                if (metadataNames.Count == 0)
+                {
+                    metadataNames = [];
+
+                    foreach (var item in Entity.MetadataNames)
+                        metadataNames.Add(item.Key, item.Value);
+
+                    metadataNames.Add(UserMetadata.Email, "UserEmail");
+                    metadataNames.Add(UserMetadata.Password, "UserPassword");
+                    metadataNames.Add(UserMetadata.AccessLevel, "UserAccessLevel");
+                }
+
+                return metadataNames;
+            }
+        }
+        static Dictionary<int, string> metadataNames = [];
+
         #endregion
     }
 

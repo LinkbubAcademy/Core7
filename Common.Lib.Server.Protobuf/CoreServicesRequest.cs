@@ -27,6 +27,16 @@ namespace Common.Lib.Server.Protobuf
                                 await entity.SaveAction() :
                                 new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
 
+
+                if (sr1.IsSuccess)
+                {
+                    var logManager = ContextFactory.Resolve<ILogManager>();
+                    if (logManager != null)
+                    {
+                        await logManager.RegisterChangesAsync(paramsCarrier.EntityInfo, "system");
+                    }
+                }
+
                 return await Task.FromResult(new SaveResult(sr1));
             }
             catch(Exception ex)
@@ -48,6 +58,15 @@ namespace Common.Lib.Server.Protobuf
                 var sr1 = entity.SaveAction != null ?
                                 await entity.SaveAction() :
                                 new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
+                
+                if (sr1.IsSuccess)
+                {
+                    var logManager = ContextFactory.Resolve<ILogManager>();
+                    if (logManager != null)
+                    {
+                        await logManager.RegisterChangesAsync(paramsCarrier.EntityInfo, "system");
+                    }
+                }
 
                 return new SaveResult(sr1);
             }
@@ -104,6 +123,14 @@ namespace Common.Lib.Server.Protobuf
                     return await Task.FromResult(new ProcessActionResult() { IsSuccess = false, Message="action not registered" });
                 if (aResult.IsSuccess)
                 {
+                    var logManager = ContextFactory.Resolve<ILogManager>();
+                    if (logManager != null)
+                    {
+                        foreach (var action in uow.UowActions.Where(x => x.ActionInfoType == ActionInfoTypes.Save))
+                            await logManager.RegisterChangesAsync(action.Change, "system");
+                    }                   
+
+
                     await uow.CommitAsync();
                     return await Task.FromResult(new ProcessActionResult(aResult));
                 }
@@ -136,6 +163,16 @@ namespace Common.Lib.Server.Protobuf
         {
             using var uow = ContextFactory.Resolve<IUnitOfWork>();
             var result = await uow.CommitAsync(paramsCarrier.UowActions);
+
+            if(result.IsSuccess)
+            {
+                var logManager = ContextFactory.Resolve<ILogManager>();
+                if (logManager != null)
+                {
+                    foreach (var action in uow.UowActions.Where(x => x.ActionInfoType == ActionInfoTypes.Save))
+                        await logManager.RegisterChangesAsync(action.Change, "system");
+                }
+            }
 
             return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = result.IsSuccess, Message = result.Message });
         }
