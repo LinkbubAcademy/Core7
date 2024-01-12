@@ -26,6 +26,16 @@ namespace Common.Lib.Services.ParamsCarriers
                                                 Guid entityId,
                                                 string paramActionName,
                                                 object[] values);
+        
+        IServiceActionParamsCarrier CreateServiceActionParams(
+                                                Guid userId,
+                                                string userToken,
+                                                DateTime actionTime,
+                                                string serviceTypeName,
+                                                string serviceActionName,
+                                                object[] values);
+
+
 
         IUnitOfWorkParamsCarrier CreateUnitOfWorkParams(Guid userId,
                                                             string userToken,

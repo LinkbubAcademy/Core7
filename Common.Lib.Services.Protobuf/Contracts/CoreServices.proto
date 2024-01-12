@@ -55,7 +55,6 @@ message ServiceActionParamsCarrier
 {
 	ParamsCarrierInfo ServiceInfo = 1;
 	string ServiceType = 2;
-	string sEntityId = 3;
 	string ServiceActionName = 4;
 	repeated string sParams = 5;	
 }

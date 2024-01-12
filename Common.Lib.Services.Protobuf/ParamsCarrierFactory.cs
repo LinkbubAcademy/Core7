@@ -61,6 +61,25 @@ namespace Common.Lib.Services.Protobuf
                                                 sValues);
         }
 
+        public IServiceActionParamsCarrier CreateServiceActionParams(
+                                                Guid userId,
+                                                string userToken,
+                                                DateTime actionTime,
+                                                string serviceTypeName,
+                                                string serviceActionName,
+                                                object[] values)
+        {
+
+            //var sValues = EntityMetadata.SerializeParamActionValues(repoTypeName + "." + paramActionName, values);
+            var sValues = values.Select(x=>x.ToString()).ToArray(); 
+            return new ServiceActionParamsCarrier(userId,
+                                                userToken,
+                                                actionTime,
+                                                serviceTypeName,
+                                                serviceActionName,
+                                                sValues);
+        }
+
         public IUnitOfWorkParamsCarrier CreateUnitOfWorkParams(Guid userId,
                                                             string userToken,
                                                             DateTime actionTime,

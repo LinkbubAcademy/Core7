@@ -10,6 +10,7 @@ namespace Common.Lib.Services
         string BaseUri { get; set; }
 
         Task<IProcessActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier);
+        Task<IProcessActionResult> RequestServiceActionAsync(IServiceActionParamsCarrier paramsCarrier);
         Task<ISaveResult<TEntity>> AddNewEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new();
         Task<ISaveResult<TEntity>> UpdateEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new();
         Task<IDeleteResult> DeleteEntityRequestAsync(IDeleteEntityParamsCarrier paramsCarrier);

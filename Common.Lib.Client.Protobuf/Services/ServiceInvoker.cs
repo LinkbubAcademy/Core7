@@ -96,6 +96,19 @@ namespace Common.Lib.Client.Services
             return output;
         }
 
+        public async Task<IProcessActionResult> RequestServiceActionAsync(IServiceActionParamsCarrier paramsCarrier)
+        {
+            if (paramsCarrier is not ServiceActionParamsCarrier)
+            {
+                throw new ArgumentNullException($"IParametricActionParamsCarrier paramsCarrier must come " +
+                    $"from the proper factory: " +
+                    $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
+            }
+
+            var output = await Channel.RequestServiceActionAsync((ServiceActionParamsCarrier)paramsCarrier);
+            Log.WriteLine("RequestServiceActionAsync.IsSuccess " + output.IsSuccess + " serializedValue: " + output.Serialized);
+            return output;
+        }
 
         public async Task<IProcessActionResult> RequestParametricActionAsync(IParametricActionParamsCarrier paramsCarrier)
         {

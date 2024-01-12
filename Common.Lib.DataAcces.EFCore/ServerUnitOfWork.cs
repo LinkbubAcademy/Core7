@@ -154,6 +154,13 @@ namespace Common.Lib.Core.Context
             return output;
         }
 
+        public IBusinessService GetBusinessService(string serviceName)
+        {
+            var output = ContextFactory.GetBusinessService(serviceName);
+            output.ContextFactory = this;
+            return output;
+        }
+
         public T NewModel<T>() where T : Entity, new()
         {
             var output = ContextFactory.NewModel<T>();

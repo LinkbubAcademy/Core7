@@ -6,6 +6,6 @@ namespace Common.Lib.Core.Context
     {
         IContextFactory ContextFactory { get; set; }
 
-        Task<IProcessActionResult> CallMethodAsync(string action, string[] serializedValues, IUnitOfWork uow);
+        Task<IProcessActionResult> CallMethodAsync(string action, string[] serializedValues, IUnitOfWork? uow = default);
     }
 }

@@ -26,7 +26,9 @@ namespace Common.Lib.Core.Context
 
         public IBusinessService GetBusinessService(string serviceName)
         {
-
+            var svc = MetadataHandler.BusinessServicesConstructors[serviceName]();
+            svc.ContextFactory = this;
+            return svc;
         }
 
         public T Resolve<T>()
