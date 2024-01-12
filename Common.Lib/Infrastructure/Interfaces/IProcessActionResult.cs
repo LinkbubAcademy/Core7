@@ -1,4 +1,5 @@
 ﻿using Common.Lib.Infrastructure.Actions;
+using Common.Lib.Services;
 
 namespace Common.Lib.Infrastructure
 {
@@ -43,6 +44,18 @@ namespace Common.Lib.Infrastructure
             output.AddErrors(Errors);
 
             return output;
+        }
+
+        public QueryResult<TDto> ToQueryResultDto<TDto>() where TDto : Dto, new()
+        {
+            var output = new QueryResult<TDto>()
+            {
+                IsSuccess = this.IsSuccess,
+                Value = Dto.ElementFromString<TDto>(Serialized)
+            };
+
+            return output;
+
         }
     }
 }

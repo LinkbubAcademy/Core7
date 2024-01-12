@@ -1,4 +1,5 @@
 ﻿using Common.Lib.Core;
+using Common.Lib.Services;
 
 namespace Common.Lib.Infrastructure.Actions
 {
@@ -68,6 +69,7 @@ namespace Common.Lib.Infrastructure.Actions
                         }
                         break;
                     case IProcessActionResult.OutputTypes.Dto:
+                        output.Serialized = (Value as Dto).Serialize();
                         break;
                     case IProcessActionResult.OutputTypes.Model:
                         break;
