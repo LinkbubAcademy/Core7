@@ -139,6 +139,23 @@ namespace Common.Lib.Server.Protobuf
             return await Task.FromResult(new ProcessActionResult() { IsSuccess = false });
         }
 
+        public override async Task<ProcessActionResult> RequestServiceAction(ServiceActionParamsCarrier paramsCarrier, ServerCallContext context)
+        {
+            var service = ContextFactory.GetBusinessService(paramsCarrier.ServiceType);
+            var uow = ContextFactory.Resolve<IUnitOfWork>();
+
+            var pa1 = await service.CallMethodAsync(paramsCarrier.ServiceActionName, paramsCarrier.SParams.ToArray(), uow);
+
+            if (pa1.IsSuccess)
+            {
+                await uow.CommitAsync();
+                return await Task.FromResult(new ProcessActionResult(pa1));
+            }
+
+            return await Task.FromResult(new ProcessActionResult() { IsSuccess = false });
+        }
+
+
         public override async Task<QueryEntityResult> QueryRepositoryForEntity(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);

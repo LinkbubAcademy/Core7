@@ -24,6 +24,11 @@ namespace Common.Lib.Core.Context
             //return output;
         }
 
+        public IBusinessService GetBusinessService(string serviceName)
+        {
+
+        }
+
         public T Resolve<T>()
         {
             var output = ServiceProvider.GetService(typeof(T));

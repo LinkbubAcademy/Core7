@@ -24,6 +24,8 @@ namespace Common.Lib.Core.Context
 
         IServerRepository GetRepository(string repoTypeName);
 
+        IBusinessService GetBusinessService(string serviceName);
+
         T NewModel<T>() where T : Entity, new();
 
         Entity ReconstructEntity(IEntityInfo entityInfo);

@@ -1,4 +1,5 @@
-﻿using Common.Lib.Core.Expressions;
+﻿using Common.Lib.Core.Context;
+using Common.Lib.Core.Expressions;
 using System.Reflection;
 
 namespace Common.Lib.Core.Metadata
@@ -12,7 +13,7 @@ namespace Common.Lib.Core.Metadata
         public static Dictionary<string, Func<string[], IQueryExpression>> QueryExpressionConstructors { get; set; } = new Dictionary<string, Func<string[], IQueryExpression>>();
         public static Dictionary<string, Func<IPropertySelector>> PropertySelectorsConstructors { get; set; } = new Dictionary<string, Func<IPropertySelector>>();
 
-
+        public static Dictionary<string, Func<IBusinessService>> BusinessServicesConstructors { get; set; } = [];
         
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
@@ -41,6 +42,7 @@ namespace Common.Lib.Core.Metadata
 
             RegisterExpressions();
             RegisterPropertySelectors();
+            RegisterBusinessServices();
         }
 
         public static void RegisterModels()
@@ -61,6 +63,22 @@ namespace Common.Lib.Core.Metadata
                 // and we keep then in memory to use them as factories of their types
                 var qeFactory = (IQueryExpression)Activator.CreateInstance(t);
                 QueryExpressionConstructors.Add(t.FullName, (parameters) => qeFactory.Create(parameters));
+            }
+        }
+
+        public static void RegisterBusinessServices()
+        {
+            var baseType = typeof(IBusinessService);
+            var types = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => baseType.IsAssignableFrom(p) && p.IsClass && !p.IsAbstract && !p.IsGenericType).ToList();
+
+            foreach (var t in types)
+            {
+                // the rationale is to use delegate instead of reflection so we create a query expression of each type
+                // and we keep then in memory to use them as factories of their types
+                var factory = () => (IBusinessService)Activator.CreateInstance(t);
+                BusinessServicesConstructors.Add(t.Name, factory);
             }
         }
 
