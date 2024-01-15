@@ -319,6 +319,11 @@ namespace Common.Lib.Core
             return Task.FromResult(new List<Guid>());
         }
 
+        public virtual void CleanNavigationProperties()
+        {
+
+        }
+
         #endregion
 
         #region Parametric actions

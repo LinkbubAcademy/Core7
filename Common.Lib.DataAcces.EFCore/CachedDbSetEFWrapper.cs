@@ -73,14 +73,26 @@ namespace Common.Lib.DataAccess.EFCore
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
 
+            entity.CleanNavigationProperties();
+
             var saveResult = Add(entity);
             if (!saveResult.IsSuccess)
                 return saveResult;
+
+            var commitResult = 0;
+
+            //try
+            //{
+                commitResult = await DbSetProvider.SaveChangesAsync();
+            //}
+            //catch (Exception ex)
+            //{
+            //    var e = ex;
+            //}
             
-            var commitResult = await DbSetProvider.SaveChangesAsync();
             saveResult = new SaveResult<T>()
             {
-                IsSuccess = commitResult != -1,
+                IsSuccess = commitResult > 0,
                 Value = saveResult.Value
             };
 
@@ -133,6 +145,8 @@ namespace Common.Lib.DataAccess.EFCore
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
 
+            entity.CleanNavigationProperties();
+
             var updateResult = Update(entity);
 
             if (!updateResult.IsSuccess)
@@ -172,6 +186,10 @@ namespace Common.Lib.DataAccess.EFCore
                     };
                     error1.AddError($"entity with id: {id} not found");
                     return error1;
+                }
+                else
+                {
+                    entityToRemove.CleanNavigationProperties();
                 }
             }
 
