@@ -69,8 +69,8 @@ namespace Common.Lib.Infrastructure.Actions
                         }
                         break;
                     case IProcessActionResult.OutputTypes.Dto:
-                        output.Serialized = (Value as Dto).Serialize();
-                        break;
+                        output.Serialized = isCollection ? Dto.SerializeCollection((IEnumerable<object>)Value) : (Value as Dto).Serialize();
+                        4break;
                     case IProcessActionResult.OutputTypes.Model:
                         break;
                     case IProcessActionResult.OutputTypes.Void:

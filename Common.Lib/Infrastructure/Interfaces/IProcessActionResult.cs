@@ -55,7 +55,19 @@ namespace Common.Lib.Infrastructure
             };
 
             return output;
+        }
+
+        public QueryResult<List<TDto>> ToQueryResultListDto<TDto>() where TDto : Dto, new()
+        {
+            var output = new QueryResult<List<TDto>>()
+            {
+                IsSuccess = this.IsSuccess,
+                Value = Dto.CollectionFromString<TDto>(Serialized)
+            };
+
+            return output;
 
         }
+
     }
 }

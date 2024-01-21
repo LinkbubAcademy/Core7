@@ -28,6 +28,12 @@
             return output;
         }
 
+        public static string SerializeCollection(IEnumerable<object> rows)
+        {
+            var o = rows.Select(x => (Dto)x);
+            return SerializeCollection(o);
+        }
+
         public static string SerializeCollection<TDto>(IEnumerable<TDto> rows) where TDto : Dto
         {
             return string.Join(ListSplitter, rows.Select(r => r.Serialize().Replace(ListSplitter, ListSubstitute)));
