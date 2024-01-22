@@ -70,7 +70,7 @@ namespace Common.Lib.Infrastructure.Actions
                         break;
                     case IProcessActionResult.OutputTypes.Dto:
                         output.Serialized = isCollection ? Dto.SerializeCollection((IEnumerable<object>)Value) : (Value as Dto).Serialize();
-                        4break;
+                        break;
                     case IProcessActionResult.OutputTypes.Model:
                         break;
                     case IProcessActionResult.OutputTypes.Void:

@@ -68,6 +68,7 @@ namespace Common.Lib.Core.Context
                                 if (entityToAdd.Id == default)
                                     entityToAdd.Id = change.EntityId != default ? change.EntityId : Guid.NewGuid();
 
+                                //entityToAdd.CleanNavigationProperties();
                                 entityToAdd.SaveAction();
                             }
                             else
@@ -87,7 +88,8 @@ namespace Common.Lib.Core.Context
                                 else
                                     entities.Add(ue.Id, ue);
 
-                                ue.DetachReferences();
+                                //ue.CleanNavigationProperties();
+                                //ue.DetachReferences();
                                 ue.SaveAction();
                             }
                             else

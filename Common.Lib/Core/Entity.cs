@@ -290,6 +290,7 @@ namespace Common.Lib.Core
                 throw new RepositoryNotRegisteredException(typeof(T));
 
             var entity = this as T;
+            //entity.CleanNavigationProperties();
 
             var output = IsNew || Id == default ? 
                 await repo.AddAsync(entity) : 

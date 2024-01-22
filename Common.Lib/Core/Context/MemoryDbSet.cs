@@ -53,16 +53,23 @@ namespace Common.Lib.Core.Context
 
             var existingEntity = Items[entity.Id];
 
-            if (Items.TryUpdate(entity.Id, entity, existingEntity))
-            {
-                output.IsSuccess = true;
-                output.Value = existingEntity;
-            }
-            else
-            {
-                output.IsSuccess = false;
-                output.AddError($"error updating Entity with id {entity.Id} in the cache");
-            }
+
+            var entityAsChanges = entity.GetChanges();
+            var changes = entityAsChanges.GetChangeUnits().OrderBy(x => x.MetadataId).ToList();
+            existingEntity.ApplyChanges(changes);
+            output.IsSuccess = true;
+            output.Value = existingEntity;
+
+            //if (Items.TryUpdate(entity.Id, entity, existingEntity))
+            //{
+            //    output.IsSuccess = true;
+            //    output.Value = existingEntity;
+            //}
+            //else
+            //{
+            //    output.IsSuccess = false;
+            //    output.AddError($"error updating Entity with id {entity.Id} in the cache");
+            //}
 
             return output;
         }
