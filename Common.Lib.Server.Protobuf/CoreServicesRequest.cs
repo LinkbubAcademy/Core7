@@ -124,14 +124,20 @@ namespace Common.Lib.Server.Protobuf
                 if (aResult.IsSuccess)
                 {
                     var logManager = ContextFactory.Resolve<ILogManager>();
+                    var uowLog = ContextFactory.Resolve<IUnitOfWork>();
                     if (logManager != null)
                     {
-                        foreach (var action in uow.UowActions.Where(x => x.ActionInfoType == ActionInfoTypes.Save))
-                            await logManager.RegisterChangesAsync(action.Change, "system");
-                    }                   
+                        foreach (var action in uow.UowActions.Where(x => x.ActionInfoType == ActionInfoTypes.Save).ToList())
+                            logManager.RegisterChanges(uowLog, action.Change, "system");
+                    }
 
 
-                    await uow.CommitAsync();
+                    var sr1 = await uow.CommitAsync();
+                    if(sr1.IsSuccess)
+                    {
+                        var sr2 = await uowLog.CommitAsync();
+                    }
+                    
                     return await Task.FromResult(new ProcessActionResult(aResult));
                 }
 
@@ -179,19 +185,23 @@ namespace Common.Lib.Server.Protobuf
         public override async Task<UnitOfWorkResult> RequestUnityOfWorkOperations(UnitOfWorkParamsCarrier paramsCarrier, ServerCallContext context)
         {
             using var uow = ContextFactory.Resolve<IUnitOfWork>();
-            var result = await uow.CommitAsync(paramsCarrier.UowActions);
+            var sr1 = await uow.CommitAsync(paramsCarrier.UowActions);
 
-            if(result.IsSuccess)
+            if (sr1.IsSuccess)
             {
                 var logManager = ContextFactory.Resolve<ILogManager>();
+                using var uowLog = ContextFactory.Resolve<IUnitOfWork>();
+
                 if (logManager != null)
                 {
                     foreach (var action in uow.UowActions.Where(x => x.ActionInfoType == ActionInfoTypes.Save))
-                        await logManager.RegisterChangesAsync(action.Change, "system");
+                        logManager.RegisterChanges(uowLog, action.Change, "system");
+
+                    await uowLog.CommitAsync();
                 }
             }
 
-            return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = result.IsSuccess, Message = result.Message });
+            return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = sr1.IsSuccess, Message = sr1.Message });
         }
 
         #region Get Value
