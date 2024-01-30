@@ -68,7 +68,7 @@ namespace Common.Lib.Core.Context
                                 if (entityToAdd.Id == default)
                                     entityToAdd.Id = change.EntityId != default ? change.EntityId : Guid.NewGuid();
 
-                                //entityToAdd.CleanNavigationProperties();
+                                //entityToAdd.AssignParents(entities);
                                 entityToAdd.SaveAction();
                             }
                             else
@@ -88,8 +88,7 @@ namespace Common.Lib.Core.Context
                                 else
                                     entities.Add(ue.Id, ue);
 
-                                //ue.CleanNavigationProperties();
-                                //ue.DetachReferences();
+                                //ue.AssignParents(entities);
                                 ue.SaveAction();
                             }
                             else
@@ -110,7 +109,6 @@ namespace Common.Lib.Core.Context
                         }
                         break;
                 }
-
 
                 //else
                 //{
@@ -224,7 +222,7 @@ namespace Common.Lib.Core.Context
         {
             if (!DbSets.ContainsKey(typeof(T)))
             {
-                var dbSet = new UnitOfWorkDbSet<T>(DbSetProvider.ResolveDbSet<T>());
+                var dbSet = new UnitOfWorkDbSet<T>((CommonEfDbContext)DbSetProvider, DbSetProvider.ResolveDbSet<T>());
                 DbSets.Add(typeof(T), dbSet);
             }
 

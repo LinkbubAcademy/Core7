@@ -59,7 +59,7 @@ namespace Common.Lib.Server.Protobuf
                                 await entity.SaveAction() :
                                 new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
                 
-                if (sr1.IsSuccess)
+                 if (sr1.IsSuccess)
                 {
                     var logManager = ContextFactory.Resolve<ILogManager>();
                     if (logManager != null)
@@ -130,7 +130,6 @@ namespace Common.Lib.Server.Protobuf
                         foreach (var action in uow.UowActions.Where(x => x.ActionInfoType == ActionInfoTypes.Save).ToList())
                             logManager.RegisterChanges(uowLog, action.Change, "system");
                     }
-
 
                     var sr1 = await uow.CommitAsync();
                     if(sr1.IsSuccess)

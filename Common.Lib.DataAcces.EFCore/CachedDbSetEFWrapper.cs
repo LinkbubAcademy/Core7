@@ -26,14 +26,17 @@ namespace Common.Lib.DataAccess.EFCore
 
         public DbSet<T>? DbSet { get; set; }
 
+        CommonEfDbContext DbContext { get; set; }
+
         public CachedDbSetEFWrapper(IContextFactory contextFactory)
         {
             DbSetProvider = contextFactory.Resolve<IDbSetProvider>();
             DbSet = DbSetProvider.ResolveDbSet<T>();
         }
 
-        public CachedDbSetEFWrapper(DbSet<T> dbSet) 
+        public CachedDbSetEFWrapper(CommonEfDbContext dbContext, DbSet<T> dbSet) 
         {
+            DbContext = dbContext;
             DbSet = dbSet;
         }
 
@@ -51,6 +54,7 @@ namespace Common.Lib.DataAccess.EFCore
         /// <exception cref="Exception"></exception>
         public ISaveResult<T> Add(T entity)
         {
+            entity.CleanNavigationProperties();
             var addedEntity = DbSet.Add(entity).Entity;
 
             var output = new SaveResult<T>()
@@ -72,8 +76,6 @@ namespace Common.Lib.DataAccess.EFCore
         {
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
-
-            entity.CleanNavigationProperties();
 
             var saveResult = Add(entity);
             if (!saveResult.IsSuccess)
@@ -118,6 +120,8 @@ namespace Common.Lib.DataAccess.EFCore
                 output.AddError($"Entity with id {entity.Id} not found in db");
                 return output;
             }
+
+            //DbContext.Entry(efEntity).State = EntityState.Detached;
 
             var entityAsChanges = entity.GetChanges();
             var changes = entityAsChanges.GetChangeUnits().OrderBy(x => x.MetadataId).ToList();

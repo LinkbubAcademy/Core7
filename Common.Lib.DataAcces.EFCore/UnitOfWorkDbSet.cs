@@ -10,8 +10,8 @@ namespace Common.Lib.DataAccess.EFCore
         Dictionary<Guid, T> PendingToConfirmUpdateToCache { get; set; }
         Dictionary<Guid, T> PendingToConfirmRemoveFromCache { get; set; }
 
-        public UnitOfWorkDbSet(DbSet<T> dbSet) 
-            : base(dbSet)
+        public UnitOfWorkDbSet(CommonEfDbContext dbContext, DbSet<T> dbSet) 
+            : base(dbContext, dbSet)
         {
             BelongsToUnitOfWork = true;
 
