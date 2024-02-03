@@ -12,6 +12,8 @@ namespace Common.Lib.Core.Context
 
         public Dictionary<Guid, Entity> EntitiesInUoW { get; set; } = new();
 
+        public UowNotificationHandler NotificationHandler { get; set; } = new UowNotificationHandler();
+
         public bool IsServerMode
         {
             get
@@ -121,8 +123,33 @@ namespace Common.Lib.Core.Context
 
             if (result > 0)
             {
+                using var uowAlt = ContextFactory.Resolve<IUnitOfWork>();
+                var saveAltRequired = false;
+                foreach(var pair in entities)
+                {
+                    var id = pair.Key;
+                    var entity = pair.Value;
+                    var type = entity.GetType();
+
+                    var dbSet = DbSets[type];
+                    var efromdb = dbSet.Find(type, id);
+
+                    if (efromdb == null)
+                    {
+                        entity.Save(uowAlt);
+                        saveAltRequired = true;
+                    }
+                }
+
+                if (saveAltRequired)
+                {
+                    var srAlt = await uowAlt.CommitAsync();
+                }
+
                 foreach(var dbSet in DbSets.Values.ToList())
                     await dbSet.UpdateCache();
+
+                NotificationHandler.HandlerAllNotifications();
 
                 return new ActionResult()
                 {
@@ -213,6 +240,9 @@ namespace Common.Lib.Core.Context
 
         public T Resolve<T>()
         {
+            if (typeof(T) == typeof(INotificationHandler))
+                return (T)(object)NotificationHandler;
+
             return ContextFactory.Resolve<T>();
         }
 

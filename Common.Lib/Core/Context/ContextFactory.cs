@@ -35,6 +35,11 @@ namespace Common.Lib.Core.Context
         {
             var output = ServiceProvider.GetService(typeof(T));
 
+            if(output is IContextElement)
+            {
+                ((IContextElement)output).ContextFactory = this;
+            }
+
             if (output == null)
                 throw new ArgumentException($"{typeof(T).FullName} is not registered in the ContextFactory");
 
@@ -104,6 +109,10 @@ namespace Common.Lib.Core.Context
         public IDbSet<T> GetDbSet<T>() where T : Entity, new()
         {
             return (IDbSet<T>)ServiceProvider.GetService(typeof(IDbSet<T>));
+        }
+
+        public void Dispose()
+        {
         }
 
         public ContextFactory(IServiceProvider serviceProvider, string repositoryAssemblyName)

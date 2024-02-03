@@ -20,6 +20,12 @@ namespace Common.Lib.DataAccess.EFCore
             PendingToConfirmRemoveFromCache = new Dictionary<Guid, T>();
         }
 
+        public Entity Find(Type type, Guid id)
+        {
+            var output = (Entity)DbContext.Find(type, id);
+            return output;
+        }
+
         public override Task<ISaveResult<T>> AddAsync(T entity)
         {
             var addResult = base.Add(entity);

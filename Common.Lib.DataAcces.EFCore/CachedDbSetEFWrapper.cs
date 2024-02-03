@@ -26,7 +26,7 @@ namespace Common.Lib.DataAccess.EFCore
 
         public DbSet<T>? DbSet { get; set; }
 
-        CommonEfDbContext DbContext { get; set; }
+        public CommonEfDbContext DbContext { get; set; }
 
         public CachedDbSetEFWrapper(IContextFactory contextFactory)
         {
@@ -500,6 +500,12 @@ namespace Common.Lib.DataAccess.EFCore
 
             if (CacheItems.CountItems<T>() == 0)
             {
+                // probamos para ver cuántos Requests nos devuelven
+                var itemList = DbSet.ToList();
+                var wlist = DbSet.Where(x => true).ToList();
+
+                var entity = DbSet.FirstOrDefault(x => x.Id.ToString() == "4700b030-4238-47e9-92b7-fa365c9dabe4");
+
                 foreach (var item in DbSet)
                 {
                     CacheItems.Add(item);

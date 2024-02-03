@@ -3,7 +3,7 @@ using Common.Lib.Infrastructure.Actions;
 
 namespace Common.Lib.Core.Context
 {
-    public interface IContextFactory
+    public interface IContextFactory : IDisposable
     {
         public static Task<QueryResult<T>> GetError<T>(bool isContextFactoryNull)
         {

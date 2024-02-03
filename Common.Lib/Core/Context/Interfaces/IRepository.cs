@@ -2,9 +2,8 @@
 
 namespace Common.Lib.Core.Context
 {
-    public interface IRepository : IDisposable
+    public interface IRepository : IContextElement
     {
-        IContextFactory ContextFactory { get; set; }
         IWorkflowManager WorkflowManager { get; }
     }
 
