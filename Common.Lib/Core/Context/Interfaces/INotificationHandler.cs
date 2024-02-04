@@ -2,6 +2,6 @@
 {
     public interface INotificationHandler : IContextElement
     {
-        void Handle(Action notificationAction);
+        void Handle(Guid entityId, Action notificationAction);
     }
 }

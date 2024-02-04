@@ -39,8 +39,6 @@ namespace Common.Lib.Core.Context
                 
             var output = new QueryResult();
 
-            var entities = new Dictionary<Guid, Entity>();
-
             var repos = new Dictionary<string,  IServerRepository>();
 
             foreach (var action in UowActions)
@@ -64,13 +62,11 @@ namespace Common.Lib.Core.Context
 
                             if (qrExistingEntity.Value == null)
                             {
-                                var entityToAdd = this.ReconstructEntity(change, entities);
-                                entities.Add(change.EntityId, entityToAdd);
+                                var entityToAdd = this.ReconstructEntity(change);
 
                                 if (entityToAdd.Id == default)
                                     entityToAdd.Id = change.EntityId != default ? change.EntityId : Guid.NewGuid();
 
-                                //entityToAdd.AssignParents(entities);
                                 entityToAdd.SaveAction();
                             }
                             else
@@ -80,15 +76,15 @@ namespace Common.Lib.Core.Context
                         }
                         else
                         {
-                            var qr = await this.ReconstructAndUpdateEntity(change, entities);
+                            var qr = await this.ReconstructAndUpdateEntity(change);
 
                             if (qr.IsSuccess && qr.Value != null)
                             {
                                 var ue = qr.Value;
-                                if (entities.ContainsKey(ue.Id))
-                                    entities[ue.Id] = ue;
+                                if (EntitiesInUoW.ContainsKey(ue.Id))
+                                    EntitiesInUoW[ue.Id] = ue;
                                 else
-                                    entities.Add(ue.Id, ue);
+                                    EntitiesInUoW.Add(ue.Id, ue);
 
                                 //ue.AssignParents(entities);
                                 ue.SaveAction();
@@ -123,26 +119,32 @@ namespace Common.Lib.Core.Context
 
             if (result > 0)
             {
-                using var uowAlt = ContextFactory.Resolve<IUnitOfWork>();
+                using var uowAlt = (ServerUnitOfWork)ContextFactory.Resolve<IUnitOfWork>();               
                 var saveAltRequired = false;
-                foreach(var pair in entities)
+
+                foreach(var pair in EntitiesInUoW)
                 {
                     var id = pair.Key;
                     var entity = pair.Value;
                     var type = entity.GetType();
 
-                    var dbSet = DbSets[type];
-                    var efromdb = dbSet.Find(type, id);
-
-                    if (efromdb == null)
+                    if (DbSets.ContainsKey(type))
                     {
-                        entity.Save(uowAlt);
-                        saveAltRequired = true;
+                        var dbSet = DbSets[type];
+                        var efromdb = dbSet.Find(type, id);
+
+                        if (efromdb == null)
+                        {
+                            NotificationHandler.DeleteNotification(id);
+                            entity.Save(uowAlt);
+                            saveAltRequired = true;
+                        }
                     }
                 }
 
                 if (saveAltRequired)
                 {
+                    uowAlt.EntitiesInUoW = this.EntitiesInUoW;
                     var srAlt = await uowAlt.CommitAsync();
                 }
 
@@ -196,17 +198,17 @@ namespace Common.Lib.Core.Context
             return output;
         }
 
-        public Entity ReconstructEntity(IEntityInfo entityInfo, Dictionary<Guid, Entity> entitiesInUoW)
-        {
-            EntitiesInUoW = entitiesInUoW;
-            return ReconstructEntity(entityInfo);
-        }
 
         public Entity ReconstructEntity(IEntityInfo entityInfo)
         {
             var output = ContextFactory.ReconstructEntity(entityInfo);
             output.ContextFactory = this;
             output.AssignParents(EntitiesInUoW);
+
+            if (EntitiesInUoW.ContainsKey(output.Id))
+                EntitiesInUoW[output.Id] = output;
+            else
+                EntitiesInUoW.Add(output.Id, output);
 
             return output;
         }
