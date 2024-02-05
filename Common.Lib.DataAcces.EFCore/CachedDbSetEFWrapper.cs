@@ -77,21 +77,14 @@ namespace Common.Lib.DataAccess.EFCore
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
 
+            var parents = entity.GetParents();
             var saveResult = Add(entity);
             if (!saveResult.IsSuccess)
                 return saveResult;
 
-            var commitResult = 0;
+            var commitResult = await DbSetProvider.SaveChangesAsync();
+            entity.AssignParents(parents);
 
-            //try
-            //{
-                commitResult = await DbSetProvider.SaveChangesAsync();
-            //}
-            //catch (Exception ex)
-            //{
-            //    var e = ex;
-            //}
-            
             saveResult = new SaveResult<T>()
             {
                 IsSuccess = commitResult > 0,

@@ -112,6 +112,12 @@ namespace Common.Lib.Core
             return Task.CompletedTask;
         }
 
+        public virtual Dictionary<Guid, Entity> GetParents()
+        {
+            var output = new Dictionary<Guid, Entity>();
+            return output;                
+        }
+
         public virtual void AssignChildren(QueryResult qr)
         {            
         }

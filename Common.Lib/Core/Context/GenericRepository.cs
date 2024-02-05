@@ -61,7 +61,7 @@ namespace Common.Lib.Core.Context
 
             return output;
         }
-
+            
         public virtual Task<IDeleteResult> DeleteAsync(Guid id)
         {
             var output = DbSet.DeleteAsync(id);
