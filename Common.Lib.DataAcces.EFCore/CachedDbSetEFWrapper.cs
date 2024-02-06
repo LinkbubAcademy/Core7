@@ -497,17 +497,11 @@ namespace Common.Lib.DataAccess.EFCore
                 var itemList = DbSet.ToList();
                 var wlist = DbSet.Where(x => true).ToList();
 
-                var entity = DbSet.FirstOrDefault(x => x.Id.ToString() == "4700b030-4238-47e9-92b7-fa365c9dabe4");
-
                 foreach (var item in DbSet)
                 {
                     CacheItems.Add(item);
                 }
             }
-        }
-
-        
+        }        
     }
 }
-
-
