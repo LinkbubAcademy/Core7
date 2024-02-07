@@ -105,7 +105,8 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
-            var output = await Channel.RequestServiceActionAsync((ServiceActionParamsCarrier)paramsCarrier);
+            var output = await Channel.RequestServiceActionAsync((ServiceActionParamsCarrier)paramsCarrier,
+                                                                    deadline: DateTime.UtcNow.AddSeconds(200));
             Log.WriteLine("RequestServiceActionAsync.IsSuccess " + output.IsSuccess + " serializedValue: " + output.Serialized);
             return output;
         }

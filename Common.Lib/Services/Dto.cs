@@ -21,6 +21,10 @@
         public static List<TDto> CollectionFromString<TDto>(string input) where TDto : Dto, new()
         {
             var output = new List<TDto>();
+
+            if (string.IsNullOrEmpty(input))
+                return output;
+
             var sRows = input.Split(ListSplitter[0])
                                 .Select(x => x.Replace(ListSubstitute, ListSplitter));
 

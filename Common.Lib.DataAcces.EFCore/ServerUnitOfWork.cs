@@ -7,10 +7,24 @@ namespace Common.Lib.Core.Context
 {
     public class ServerUnitOfWork : UnitOfWork, IContextFactory
     {
+        public ServerUnitOfWork ParentUoW { get; set; }
+
         public IContextFactory ContextFactory { get; set; }
         public IDbSetProvider DbSetProvider { get; set; }
 
-        public Dictionary<Guid, Entity> EntitiesInUoW { get; set; } = new();
+        public Dictionary<Guid, Entity> EntitiesInUoW
+        {
+            get
+            {
+                return ParentUoW != null ? ParentUoW.EntitiesInUoW : entitiesInUoW;
+            }
+            set
+            {
+                entitiesInUoW = value;
+            }
+        }
+
+        Dictionary<Guid, Entity> entitiesInUoW = new Dictionary<Guid, Entity>();
 
         public UowNotificationHandler NotificationHandler { get; set; } = new UowNotificationHandler();
 
@@ -107,19 +121,15 @@ namespace Common.Lib.Core.Context
                         }
                         break;
                 }
-
-                //else
-                //{
-                //    foreach (var notif in onSavedNotifications)
-                //        notif();
-                //}
             }
 
             var result = await DbSetProvider.SaveChangesAsync();
 
             if (result > 0)
             {
-                using var uowAlt = (ServerUnitOfWork)ContextFactory.Resolve<IUnitOfWork>();               
+                using var uowAlt = (ServerUnitOfWork)ContextFactory.Resolve<IUnitOfWork>();
+                uowAlt.ParentUoW = this.ParentUoW != null ? this.ParentUoW : this;
+
                 var saveAltRequired = false;
 
                 foreach(var pair in EntitiesInUoW)
@@ -141,17 +151,19 @@ namespace Common.Lib.Core.Context
                         }
                     }
                 }
-
+                           
                 if (saveAltRequired)
                 {
-                    uowAlt.EntitiesInUoW = this.EntitiesInUoW;
                     var srAlt = await uowAlt.CommitAsync();
                 }
 
                 foreach(var dbSet in DbSets.Values.ToList())
                     await dbSet.UpdateCache();
 
-                NotificationHandler.HandlerAllNotifications();
+                if (ParentUoW == null)
+                {
+                    NotificationHandler.HandlerAllNotifications();                    
+                }
 
                 return new ActionResult()
                 {

@@ -67,6 +67,10 @@ namespace Common.Lib.Infrastructure.Actions
                         {
                             output.Serialized = Value.ToString();
                         }
+                        else if (className == "String")
+                        {
+                            output.Serialized = Value.ToString();
+                        }
                         break;
                     case IProcessActionResult.OutputTypes.Dto:
                         output.Serialized = isCollection ? Dto.SerializeCollection((IEnumerable<object>)Value) : (Value as Dto).Serialize();

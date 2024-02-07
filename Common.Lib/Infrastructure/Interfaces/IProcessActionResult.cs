@@ -33,6 +33,9 @@ namespace Common.Lib.Infrastructure
                 case "Bool":
                     output = new QueryResult<bool>() { IsSuccess = this.IsSuccess, Value = Serialized == "True" };
                     break;
+                case "String":
+                    output = new QueryResult<string>() { IsSuccess = this.IsSuccess, Value = Serialized };
+                    break;
                 default:
                     Log.WriteLine(OutputClassName);
                     return new QueryResult();
