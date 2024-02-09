@@ -104,6 +104,12 @@ namespace Common.Lib.DataAccess.EFCore
                     wrapper.Value.InitCacheItems();
                     Log.WriteLine("init cache for " + wrapper.Key.FullName);
                 }
+
+                foreach(var dbset in DbSetsWrappers.Values)
+                {
+                    foreach (var entity in dbset.GetReader())
+                        entity.AssignToParents();
+                }
             }
             catch (Exception e1)
             {

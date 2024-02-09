@@ -28,14 +28,21 @@ namespace Common.Lib.DataAccess.EFCore
 
         public override Task<ISaveResult<T>> AddAsync(T entity)
         {
+            var dt1 = DateTime.Now;
             var addResult = base.Add(entity);
 
+            var dt2 = DateTime.Now;
             if (addResult.IsSuccess &&
                 addResult.Value != null &&
                 !PendingToConfirmAddToCache.ContainsKey(entity.Id))
             {
                 PendingToConfirmAddToCache.Add(addResult.Value.Id, addResult.Value);
             }
+
+            var dt3 = DateTime.Now;
+
+            var dif1 = (dt2 - dt1).TotalMilliseconds;
+            var dif2 = (dt3 - dt2).TotalMilliseconds;
 
             return Task.FromResult(addResult);
         }

@@ -12,14 +12,20 @@ namespace Common.Lib.Core.Context
     {
         public int NestingLevel { get; set; }
 
-
         List<string> Errors { get; set; } = new List<string>();
 
         static ConcurrentDictionary<Guid, T> Items = new ConcurrentDictionary<Guid, T>();
 
+
         public MemoryDbSet()
         {
         }
+
+        public IEnumerable<T> GetReader()
+        { 
+            return Items.Values;
+        }
+
 
         #region CRUD
 
@@ -127,7 +133,7 @@ namespace Common.Lib.Core.Context
                 return new QueryResult<T1>()
                 {
                     IsSuccess = true,
-                    Value = result as T1
+                    Value = (T1)result
                 };
 
             return new QueryResult<T1>()

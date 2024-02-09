@@ -9,6 +9,22 @@ namespace Common.Lib.Core.Context
     {
         public ServerUnitOfWork ParentUoW { get; set; }
 
+        public override TimeInfoLog TimeInfoLog
+        {
+            get
+            {
+                if (ParentUoW != null)
+                    return ParentUoW.TimeInfoLog;
+                else
+                    return timeInfoLog;
+            }
+            set
+            {
+                timeInfoLog = value;
+            }
+        }
+        TimeInfoLog timeInfoLog;
+
         public IContextFactory ContextFactory { get; set; }
         public IDbSetProvider DbSetProvider { get; set; }
 
@@ -59,6 +75,8 @@ namespace Common.Lib.Core.Context
             {
                 var type = action.Change.EntityModelType;
 
+                //TimeInfoLog?.AddTimeEntry($"UOW_Start_Action_EntityType:{type}:");
+
                 if (!repos.ContainsKey(type))
                     repos.Add(type, this.GetRepository(type));
 
@@ -72,6 +90,8 @@ namespace Common.Lib.Core.Context
 
                         if (change.IsNew || change.EntityId == default)
                         {
+                            TimeInfoLog?.AddTimeEntry($"UOW_start_Add____{type}_Id:{change.EntityId}:");
+
                             var qrExistingEntity = await currentRepo.FindAsync(change.EntityId);
 
                             if (qrExistingEntity.Value == null)
@@ -87,9 +107,13 @@ namespace Common.Lib.Core.Context
                             {
                                 //todo: handle Entity exists error
                             }
+
+
+                            TimeInfoLog?.AddTimeEntry($"UOW_end___Add____{type}_Id:{change.EntityId}:");
                         }
                         else
                         {
+                            TimeInfoLog?.AddTimeEntry($"UOW_start_Update_{type}_Id:{change.EntityId}");
                             var qr = await this.ReconstructAndUpdateEntity(change);
 
                             if (qr.IsSuccess && qr.Value != null)
@@ -107,11 +131,14 @@ namespace Common.Lib.Core.Context
                             {
                                 //todo: handle Entity exists error
                             }
+
+                            TimeInfoLog?.AddTimeEntry($"UOW_end___Update_{type}_Id:{change.EntityId}:");
                         }
 
                         break;
                     case ActionInfoTypes.Delete:
 
+                        TimeInfoLog?.AddTimeEntry($"UOW_start_Delete_{type}_Id:{change.EntityId}:");
                         var qrEntityToRemove = await currentRepo.FindAsync(change.EntityId);
                         if (qrEntityToRemove.IsSuccess && qrEntityToRemove.Value != null)
                         {
@@ -119,11 +146,16 @@ namespace Common.Lib.Core.Context
                             entityToRemove.ContextFactory = this;
                             entityToRemove.DeleteAction();
                         }
+                        TimeInfoLog?.AddTimeEntry($"UOW_end___Delete_{type}_Id:{change.EntityId}:");
                         break;
                 }
+
+
             }
 
+            TimeInfoLog?.AddTimeEntry("UOW data to persist prepared");
             var result = await DbSetProvider.SaveChangesAsync();
+            TimeInfoLog?.AddTimeEntry("UOW persistance action");
 
             if (result > 0)
             {
@@ -157,12 +189,18 @@ namespace Common.Lib.Core.Context
                     var srAlt = await uowAlt.CommitAsync();
                 }
 
-                foreach(var dbSet in DbSets.Values.ToList())
+
+                TimeInfoLog?.AddTimeEntry("UOW caching info start");
+                foreach (var dbSet in DbSets.Values.ToList())
                     await dbSet.UpdateCache();
+                TimeInfoLog?.AddTimeEntry("UOW caching info end");
 
                 if (ParentUoW == null)
                 {
-                    NotificationHandler.HandlerAllNotifications();                    
+
+                    TimeInfoLog?.AddTimeEntry("UOW handle notification start");
+                    NotificationHandler.HandlerAllNotifications();
+                    TimeInfoLog?.AddTimeEntry("UOW handle notification end");
                 }
 
                 return new ActionResult()

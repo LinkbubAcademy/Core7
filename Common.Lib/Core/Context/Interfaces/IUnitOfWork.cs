@@ -4,6 +4,7 @@ namespace Common.Lib.Core.Context
 {
     public interface IUnitOfWork : IDisposable
     {
+        public TimeInfoLog? TimeInfoLog { get; set; }
         public List<IUoWActInfo> UowActions { get; set; }
 
         void AddEntityDelete(Entity entity);

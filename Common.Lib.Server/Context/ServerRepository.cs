@@ -64,7 +64,7 @@ namespace Common.Lib.Server.Context
                 foreach (var entity in qr1.Value)
                 {
                     entity.ContextFactory = ContextFactory;
-                    await entity.IncludeChildren(refEnts, this.DbSet.NestingLevel);
+                    entity.IncludeChildren(refEnts, this.DbSet.NestingLevel);
                 }
             }
 
@@ -89,7 +89,7 @@ namespace Common.Lib.Server.Context
             {
                 refEnts = new();
                 qr1.Value.ContextFactory = ContextFactory;
-                await qr1.Value.IncludeChildren(refEnts, this.DbSet.NestingLevel);
+                qr1.Value.IncludeChildren(refEnts, this.DbSet.NestingLevel);
             }
 
             return new QueryResult<Entity>()

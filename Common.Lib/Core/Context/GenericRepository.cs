@@ -21,7 +21,6 @@ namespace Common.Lib.Core.Context
 
         readonly IWorkflowManager _workflowManager;
 
-
         public virtual IDbSet<T> DbSet
         {
             get
@@ -79,6 +78,10 @@ namespace Common.Lib.Core.Context
             return DbSet.FindAsync(id);
         }
 
+        public QueryResult<T> Find(Guid id)
+        {
+            return DbSet.Find(id);
+        }
 
         #endregion
 

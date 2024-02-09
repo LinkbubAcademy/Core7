@@ -3,6 +3,7 @@ using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using Common.Lib.Services;
 using Common.Lib.Services.ParamsCarriers;
+using System.Diagnostics.Tracing;
 
 namespace Common.Lib.Core.Context
 {
@@ -95,6 +96,19 @@ namespace Common.Lib.Core.Context
                 response.Value?.AssignChildren(response);
 
             return response;
+        }
+
+        public QueryResult<T> Find(Guid id) 
+        {
+            var output = new QueryResult<T>
+            {
+                Value = null,
+                IsSuccess = false
+            };
+
+            output.AddError("no se puede usar el Find sincrono desde el cliente, usar FindAsync a cambio");
+
+            return output;
         }
 
         public async Task<QueryResult<T>> GetEntityAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations)

@@ -45,9 +45,9 @@ namespace Common.Lib.Authentication
             throw new ArgumentException($"Type {typeof(T).FullName} does not derived from User");
         }
 
-        public override Task IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
+        public override void IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
         {
-            return base.IncludeChildren(refEnts, nestingLevel);
+            base.IncludeChildren(refEnts, nestingLevel);
         }
 
         public override void AssignChildren(QueryResult qr)

@@ -16,6 +16,11 @@ namespace Common.Lib.Core.Context
             DbSet = dbSet;
         }
 
+        public QueryResult<T> Find(Guid id)
+        {
+            return DbSet.Find(id);
+        }
+
         public Task<QueryResult<T>> FindAsync(Guid id)
         {
             return DbSet.FindAsync(id);

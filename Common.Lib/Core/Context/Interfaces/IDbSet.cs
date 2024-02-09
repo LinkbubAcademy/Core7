@@ -6,7 +6,7 @@ namespace Common.Lib.Core.Context
     public interface IDbSet<T> : ICrudHandler<T> where T : Entity, new()
     {
         int NestingLevel { get; set; }
-
+        QueryResult<T> Find(Guid id);
         Task<QueryResult<T>> FindAsync(Guid id);
 
         Task<QueryResult<T>> GetEntityAsync(List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations);

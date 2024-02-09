@@ -7,6 +7,8 @@ namespace Common.Lib.Core.Context
     {
         Task<QueryResult<T>> FindAsync(Guid id);
 
+        QueryResult<T> Find(Guid id);
+
         IQueryAggregator<T> Where(params IQueryExpression[] expressions);
         IQueryAggregator<T> OrderBy<TValue>(IPropertySelector<TValue> properySelector);
         IQueryAggregator<T> OrderByDesc<TValue>(IPropertySelector<TValue> properySelector);

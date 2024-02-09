@@ -107,9 +107,8 @@ namespace Common.Lib.Core
                 return null;
         }
 
-        public virtual Task IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
+        public virtual void IncludeChildren(Dictionary<Guid, Entity> refEnts, int nestingLevel)
         {
-            return Task.CompletedTask;
         }
 
         public virtual Dictionary<Guid, Entity> GetParents()
@@ -123,6 +122,11 @@ namespace Common.Lib.Core
         }
 
         public virtual void AssignParents(Dictionary<Guid, Entity> uowEntities)
+        {
+
+        }
+
+        public virtual void AssignToParents()
         {
 
         }

@@ -13,18 +13,28 @@ namespace Common.Lib.DataAccess.EFCore
         public IContextFactory ContextFactory { get; set; }
         public IDbSetProvider? DbSetProvider { get; set; }
 
-        public static MemoryDbSet<Entity>? CacheItems { get; set; }
         public bool BelongsToUnitOfWork { get; set; }
 
-        public abstract void InitCacheItems();              
+        public abstract void InitCacheItems();
+
+        public abstract IEnumerable<Entity> GetReader();
         
     }
 
     public class CachedDbSetEFWrapper<T> : CachedDbSetEFWrapper, IDbSet<T> where T : Entity, new()
     {
+
+        public static MemoryDbSet<T>? CacheItems { get; set; }
+
         public int NestingLevel { get; set; }
 
         public DbSet<T>? DbSet { get; set; }
+
+
+        public override IEnumerable<Entity> GetReader()
+        {
+            return DbSet;
+        }
 
         public CommonEfDbContext DbContext { get; set; }
 
@@ -54,8 +64,16 @@ namespace Common.Lib.DataAccess.EFCore
         /// <exception cref="Exception"></exception>
         public ISaveResult<T> Add(T entity)
         {
+            var dt1 = DateTime.Now;
             entity.CleanNavigationProperties();
+
+            var dt2 = DateTime.Now;
             var addedEntity = DbSet.Add(entity).Entity;
+
+            var dt3 = DateTime.Now;
+
+            var dif1 = (dt2 - dt1).TotalMilliseconds;
+            var dif2 = (dt3 - dt2).TotalMilliseconds;
 
             var output = new SaveResult<T>()
             {
@@ -488,7 +506,7 @@ namespace Common.Lib.DataAccess.EFCore
         {
             if (CacheItems == null)
             {
-                CacheItems = new MemoryDbSet<Entity>();
+                CacheItems = new MemoryDbSet<T>();
             }
 
             if (CacheItems.CountItems<T>() == 0)
