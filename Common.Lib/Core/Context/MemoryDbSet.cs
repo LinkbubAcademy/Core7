@@ -93,20 +93,21 @@ namespace Common.Lib.Core.Context
         public IDeleteResult Delete(Guid id)
         {
             var output = new DeleteResult();
-
+            
             if (!Items.ContainsKey(id))
             {
                 output.AddError($"entity with {id} not found in cache");
                 return output;
             }
-            
-            if (!Items.Remove(id, out _))
+
+            if (!Items.Remove(id, out T? entityToDelete))
             {
                 output.AddError($"entity with {id} cannot be removed but it is in the cache");
                 return output;
             }
 
             output.IsSuccess = true;
+            output.DeletedEntity = entityToDelete;
 
             return output;
         }

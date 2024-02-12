@@ -121,12 +121,21 @@ namespace Common.Lib.Core
         {            
         }
 
+        public virtual void AssignParents()
+        {
+        }
+
         public virtual void AssignParents(Dictionary<Guid, Entity> uowEntities)
         {
 
         }
 
         public virtual void AssignToParents()
+        {
+
+        }
+
+        public virtual void UnassingFromParents()
         {
 
         }
@@ -302,11 +311,20 @@ namespace Common.Lib.Core
             var entity = this as T;
             //entity.CleanNavigationProperties();
 
-            var output = IsNew || Id == default ? 
-                await repo.AddAsync(entity) : 
-                await repo.UpdateAsync(entity);
+            if (IsNew || Id == default)
+            {
+                var output = await repo.AddAsync(entity);
 
-            return output;
+                if (output.IsSuccess && ContextFactory.IsServerMode)
+                {
+                    AssignToParents();
+                }
+                return output;
+            }
+            else
+            {
+                return await repo.UpdateAsync(entity);
+            }            
         }
 
         public virtual async Task<IDeleteResult> DeleteAsync<T>() where T : Entity, new()
@@ -322,7 +340,12 @@ namespace Common.Lib.Core
             using var repo = ContextFactory.GetRepository<T>() ??
                 throw new RepositoryNotRegisteredException(typeof(T));
 
-            return await repo.DeleteAsync(this.Id);
+            var output = await repo.DeleteAsync(this.Id);
+
+            if (output.IsSuccess)
+                UnassingFromParents();
+
+            return output;
         }
 
         public virtual Task<List<Guid>> GetDependentEntities()
@@ -330,9 +353,15 @@ namespace Common.Lib.Core
             return Task.FromResult(new List<Guid>());
         }
 
-        public virtual void CleanNavigationProperties()
+        public virtual void SetNavigationProperties(Dictionary<string, object> ents)
         {
 
+        }
+
+        public virtual Dictionary<string, object> CleanNavigationProperties()
+        {
+            var output = new Dictionary<string, object>();
+            return output;
         }
 
         #endregion

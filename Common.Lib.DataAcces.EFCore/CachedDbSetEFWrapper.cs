@@ -160,9 +160,12 @@ namespace Common.Lib.DataAccess.EFCore
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
 
-            entity.CleanNavigationProperties();
+            var navProps = entity.CleanNavigationProperties();
 
             var updateResult = Update(entity);
+
+            entity.SetNavigationProperties(navProps);
+            entity.AssignToParents();
 
             if (!updateResult.IsSuccess)
                 return updateResult;
@@ -212,7 +215,8 @@ namespace Common.Lib.DataAccess.EFCore
             return new DeleteResult()
             {
                 IsSuccess = deleteResult,
-                Message = deleteResult ? string.Empty : $"DbContext cannot delete entity {id}"
+                Message = deleteResult ? string.Empty : $"DbContext cannot delete entity {id}",
+                DeletedEntity = entityToRemove
             };
         }
 

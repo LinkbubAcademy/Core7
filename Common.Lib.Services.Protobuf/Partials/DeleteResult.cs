@@ -25,6 +25,9 @@ namespace Common.Lib.Services.Protobuf
                     sErrors_.Add(error);
             }
         }
+
+        public Entity? DeletedEntity { get; set; }
+
         public void AddErrors(IEnumerable<string> errors)
         {
             ((List<string>)Errors).AddRange(errors);

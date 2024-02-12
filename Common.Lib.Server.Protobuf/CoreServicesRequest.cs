@@ -27,7 +27,6 @@ namespace Common.Lib.Server.Protobuf
                                 await entity.SaveAction() :
                                 new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
 
-
                 if (sr1.IsSuccess)
                 {
                     var logManager = ContextFactory.Resolve<ILogManager>();
@@ -59,7 +58,7 @@ namespace Common.Lib.Server.Protobuf
                                 await entity.SaveAction() :
                                 new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
                 
-                 if (sr1.IsSuccess)
+                if (sr1.IsSuccess)
                 {
                     var logManager = ContextFactory.Resolve<ILogManager>();
                     if (logManager != null)

@@ -77,8 +77,10 @@ namespace Common.Lib.Core.Context
             entity.ContextFactory = this;
 
             var changes = entityInfo.GetChangeUnits().OrderBy(x => x.MetadataId).ToList();
-
             entity.ApplyChanges(changes);
+
+            entity.AssignParents();
+
             return entity;
         }
 
