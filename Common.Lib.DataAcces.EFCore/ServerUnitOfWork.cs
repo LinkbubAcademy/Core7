@@ -42,7 +42,7 @@ namespace Common.Lib.Core.Context
 
         Dictionary<Guid, Entity> entitiesInUoW = new Dictionary<Guid, Entity>();
 
-        public INotificationHandler NotificationHandler { get; set; } = new UowNotificationHandler();
+        public override INotificationHandler NotificationHandler { get; set; } = new UowNotificationHandler();
 
         public bool IsServerMode
         {
