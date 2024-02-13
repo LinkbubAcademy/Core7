@@ -7,6 +7,7 @@ namespace Common.Lib.Core.Context
         public List<IUoWActInfo> UowActions { get; set; } = new();
 
         public virtual TimeInfoLog? TimeInfoLog { get; set; }
+        public INotificationHandler NotificationHandler { get; set; }
 
         public void AddEntitySave(Entity entity)
         {

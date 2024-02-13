@@ -42,7 +42,7 @@ namespace Common.Lib.Core.Context
 
         Dictionary<Guid, Entity> entitiesInUoW = new Dictionary<Guid, Entity>();
 
-        public UowNotificationHandler NotificationHandler { get; set; } = new UowNotificationHandler();
+        public INotificationHandler NotificationHandler { get; set; } = new UowNotificationHandler();
 
         public bool IsServerMode
         {
@@ -177,7 +177,7 @@ namespace Common.Lib.Core.Context
 
                         if (efromdb == null)
                         {
-                            NotificationHandler.DeleteNotification(id);
+                            ((UowNotificationHandler)NotificationHandler).DeleteNotification(id);
                             entity.Save(uowAlt);
                             saveAltRequired = true;
                         }
@@ -199,7 +199,7 @@ namespace Common.Lib.Core.Context
                 {
 
                     TimeInfoLog?.AddTimeEntry("UOW handle notification start");
-                    NotificationHandler.HandlerAllNotifications();
+                    ((UowNotificationHandler)NotificationHandler).HandlerAllNotifications();
                     TimeInfoLog?.AddTimeEntry("UOW handle notification end");
                 }
 
