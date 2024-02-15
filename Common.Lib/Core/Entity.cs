@@ -11,6 +11,7 @@ namespace Common.Lib.Core
     public partial class Entity
     {
         private Guid id;
+
         #region Persisted properties
 
         /// <summary>
@@ -47,6 +48,8 @@ namespace Common.Lib.Core
 
         public Func<Task<ISaveResult>>? SaveAction { get; set; }
         public Func<Task<IDeleteResult>>? DeleteAction { get; set; }
+
+        public Func<Entity> CloneAction { get; set; }
 
         public bool IsAlreadyAssigned { get; set; }
 

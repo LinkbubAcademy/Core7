@@ -11,6 +11,7 @@ namespace Common.Lib.DataAccess.EFCore
             builder.Ignore(x => x.IsNew);
             builder.Ignore(x => x.SaveAction);
             builder.Ignore(x => x.DeleteAction);
+            builder.Ignore(x => x.CloneAction);
             builder.Ignore(x => x.ContextFactory);
             builder.Ignore(x => x.LastQueryNetingLevel);
 
@@ -22,6 +23,7 @@ namespace Common.Lib.DataAccess.EFCore
             builder.Ignore(x => x.IsNew);
             builder.Ignore(x => x.SaveAction);
             builder.Ignore(x => x.DeleteAction);
+            builder.Ignore(x => x.CloneAction);
             builder.Ignore(x => x.ContextFactory);
             builder.Ignore(x => x.LastQueryNetingLevel);
 

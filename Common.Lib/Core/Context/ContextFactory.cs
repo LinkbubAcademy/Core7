@@ -93,7 +93,7 @@ namespace Common.Lib.Core.Context
             if (!qre.IsSuccess)
                 return qre;
 
-            var entity = qre.Value;
+            var entity = qre.Value.CloneAction();
 
             entity.Id = entityInfo.EntityId;
             entity.ContextFactory = this;
