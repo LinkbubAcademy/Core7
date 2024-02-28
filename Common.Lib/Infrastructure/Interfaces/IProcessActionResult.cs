@@ -49,6 +49,34 @@ namespace Common.Lib.Infrastructure
             return output;
         }
 
+        //public IActionResult ToQueryResultListSimpleType()
+        //{
+        //    // todo: completar
+        //    IActionResult output = null;
+        //    switch (OutputClassName)
+        //    {
+        //        case "Guid":
+        //            output = new QueryResult<List<Guid>>() { IsSuccess = this.IsSuccess, Value = Guid.Parse(Serialized) };
+        //            break;
+        //        case "Bool":
+        //            output = new QueryResult<List<bool>>() { IsSuccess = this.IsSuccess, Value = Serialized == "True" };
+        //            break;
+        //        case "String":
+        //            output = new QueryResult<List<string>>() { IsSuccess = this.IsSuccess, Value = Serialized };
+        //            break;
+        //        default:
+        //            Log.WriteLine(OutputClassName);
+        //            return new QueryResult();
+
+        //    }
+
+        //    output.Message = Message;
+        //    output.IsSuccess = IsSuccess;
+        //    output.AddErrors(Errors);
+
+        //    return output;
+        //}
+
         public QueryResult<TDto> ToQueryResultDto<TDto>() where TDto : Dto, new()
         {
             var output = new QueryResult<TDto>()
