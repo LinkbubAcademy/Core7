@@ -5,6 +5,7 @@ using Common.Lib.Infrastructure.Actions;
 using Common.Lib.Services.ParamsCarriers;
 using Common.Lib.Services;
 using Common.Lib.Infrastructure;
+using System.Text.Json.Serialization;
 
 namespace Common.Lib.Core
 {
@@ -38,23 +39,33 @@ namespace Common.Lib.Core
         /// The unmodified Entity, used to get changes after
         /// the entty is cloned and modified
         /// </summary>
+        [JsonIgnore]
         public Entity? Origin { get; set; }
 
+        [JsonIgnore]
         public bool IsNew { get; set; } = true;
 
+        [JsonIgnore]
         public int LastQueryNetingLevel { get; set; }
 
+        [JsonIgnore]
         public IContextFactory? ContextFactory { get; set; }
 
+        [JsonIgnore]
         public Func<Task<ISaveResult>>? SaveAction { get; set; }
+        [JsonIgnore]
         public Func<Task<IDeleteResult>>? DeleteAction { get; set; }
 
+        [JsonIgnore]
         public Func<Entity> CloneAction { get; set; }
 
+        [JsonIgnore]
         public bool IsAlreadyAssigned { get; set; }
 
+        [JsonIgnore]
         internal ValidationResult? ValidationResult { get; set; }
 
+        [JsonIgnore]
         internal List<Action>? NotificationActions { get; set; }
 
         #endregion

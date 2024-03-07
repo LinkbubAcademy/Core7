@@ -115,6 +115,7 @@ message ProcessActionResult
   int32 nOutputType = 4;
   bool IsCollection = 5;
   string OutputClassName = 6;
+  repeated string sErrors = 7;
 }
 
 message ActionResult {

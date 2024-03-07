@@ -28,7 +28,20 @@ namespace Common.Lib.Services.Protobuf
             }
         }
 
-        public IEnumerable<string> Errors { get; set; } = new List<string>();
+        public IEnumerable<string> Errors
+        {
+            get
+            {
+                return this.SErrors;
+            }
+            set
+            {
+                foreach (var error in value)
+                {
+                    this.SErrors.Add(error);
+                }
+            }
+        }
 
         public void AddErrors(IEnumerable<string> errors)
         {

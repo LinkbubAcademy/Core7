@@ -28,6 +28,9 @@ namespace Common.Lib.Core.Context
         public IContextFactory ContextFactory { get; set; }
         public IDbSetProvider DbSetProvider { get; set; }
 
+
+        DateTime LastNewDateTime { get; set; } = DateTime.Now;
+
         public Dictionary<Guid, Entity> EntitiesInUoW
         {
             get
@@ -100,6 +103,11 @@ namespace Common.Lib.Core.Context
 
                                 if (entityToAdd.Id == default)
                                     entityToAdd.Id = change.EntityId != default ? change.EntityId : Guid.NewGuid();
+
+                                entityToAdd.CreatedOn = LastNewDateTime;
+                                entityToAdd.UpdatedOn = LastNewDateTime;
+
+                                LastNewDateTime = LastNewDateTime.AddMilliseconds(0.001);
 
                                 entityToAdd.SaveAction();
                             }

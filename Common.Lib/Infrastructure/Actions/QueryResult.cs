@@ -52,6 +52,7 @@ namespace Common.Lib.Infrastructure.Actions
                 IsCollection = isCollection,
                 OutputClassName = className
             };
+            output.AddErrors(this.Errors);
 
             if (Value != null)
             {

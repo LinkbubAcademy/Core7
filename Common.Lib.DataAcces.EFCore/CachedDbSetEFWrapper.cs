@@ -100,8 +100,17 @@ namespace Common.Lib.DataAccess.EFCore
             if (!saveResult.IsSuccess)
                 return saveResult;
 
-            var commitResult = await DbSetProvider.SaveChangesAsync();
-            entity.AssignParents(parents);
+            int commitResult = 0;
+
+            try
+            {
+                commitResult = await DbSetProvider.SaveChangesAsync();
+                entity.AssignParents(parents);
+            }
+            catch(Exception e)
+            {
+                var a = e;
+            }
 
             saveResult = new SaveResult<T>()
             {

@@ -27,6 +27,7 @@ namespace Common.Lib.Client.UI
         public Func<Func<Task>, Task>? InvokeAsync { get; set; }
 
         public Action RefreshView { get; set; }
+        public Action<string>? ShowAlertAsync { get; set; }
 
         public BaseViewModel(IContextFactory contextFactory) 
         {
@@ -35,10 +36,15 @@ namespace Common.Lib.Client.UI
 
         public bool ProcessResult(IActionResult result)
         {
-            if (!result.IsSuccess)
-                Errors.AddRange(result.Errors);
+            return ProcessResult(result.IsSuccess, result.Errors);
+        }
 
-            return result.IsSuccess;
+        public bool ProcessResult(bool isSuccess, IEnumerable<string> errors)
+        {
+            if (!isSuccess)
+                Errors.AddRange(errors);
+
+            return isSuccess;
         }
     }
 }
