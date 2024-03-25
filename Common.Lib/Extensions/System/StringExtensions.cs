@@ -1,4 +1,6 @@
-﻿namespace System
+﻿using System.Text;
+
+namespace System
 {
     public static class StringExtensions
     {
@@ -16,6 +18,11 @@
                 return value.ToLower();
 
             return value[0].ToString().ToLower() + value.Substring(1, value.Length - 1);
+        }
+
+        public static MemoryStream ToMemoryStream(this string base64)
+        {
+            return new MemoryStream(Convert.FromBase64String(base64));
         }
     }
 }

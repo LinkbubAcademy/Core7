@@ -356,7 +356,7 @@ namespace Common.Lib.Core
 
             var output = await repo.DeleteAsync(this.Id);
 
-            if (output.IsSuccess)
+            if (output.IsSuccess && ContextFactory.IsServerMode)
                 UnassingFromParents();
 
             return output;
