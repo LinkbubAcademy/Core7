@@ -1,23 +1,31 @@
-﻿using Common.Lib.Services.ParamsCarriers;
+﻿using Common.Lib.Infrastructure;
+using Common.Lib.Services.ParamsCarriers;
 
 namespace Common.Lib.Services.Protobuf
 {
     public partial class ParametricActionParamsCarrier : IParametricActionParamsCarrier
     {
+        public ITraceInfo? TraceInfo { get; set; }
         public ParametricActionParamsCarrier(Guid userId, 
-                                                string userToken, 
+                                                string userToken,
+                                                string userEmail,
+                                                ITraceInfo? traceInfo,
                                                 DateTime actionTime,
                                                 string repoTypeName,
                                                 Guid entityId,
                                                 string paramActionName, 
                                                 string[] serializedValues)
         {
+            TraceInfo = traceInfo;
             this.ServiceInfo = new ParamsCarrierInfo()
             {
                 UserId = userId,
                 UserToken = userToken,
-                ActionTime = actionTime
+                UserEmail = userEmail,
+                ActionTime = actionTime,
+                TraceInfo = traceInfo,
             };
+
             this.RepositoryType = repoTypeName;
             this.EntityId = entityId;
             this.ParametricActionName = paramActionName;
@@ -58,6 +66,19 @@ namespace Common.Lib.Services.Protobuf
                 this.ServiceInfo.UserToken = value;
             }
         }
+
+        public string UserEmail
+        {
+            get
+            {
+                return this.ServiceInfo.UserEmail;
+            }
+            set
+            {
+                this.ServiceInfo.UserEmail = value;
+            }
+        }
+
         public DateTime ActionTime
 
         {

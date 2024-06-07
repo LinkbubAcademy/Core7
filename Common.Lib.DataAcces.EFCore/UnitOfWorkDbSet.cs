@@ -1,4 +1,5 @@
-﻿using Common.Lib.Core;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Core;
 using Common.Lib.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,7 +27,7 @@ namespace Common.Lib.DataAccess.EFCore
             return output;
         }
 
-        public override Task<ISaveResult<T>> AddAsync(T entity)
+        public override Task<ISaveResult<T>> AddAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             var dt1 = DateTime.Now;
             var addResult = base.Add(entity);
@@ -47,7 +48,7 @@ namespace Common.Lib.DataAccess.EFCore
             return Task.FromResult(addResult);
         }
 
-        public override Task<ISaveResult<T>> UpdateAsync(T entity)
+        public override Task<ISaveResult<T>> UpdateAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             var updateResult = base.Update(entity);
 
@@ -61,7 +62,7 @@ namespace Common.Lib.DataAccess.EFCore
             return Task.FromResult(updateResult);
         }
 
-        public override Task<IDeleteResult> DeleteAsync(Guid id)
+        public override Task<IDeleteResult> DeleteAsync(Guid id, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             var deleteResult = base.Delete(id);
 

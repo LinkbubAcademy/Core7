@@ -4,6 +4,7 @@ namespace Common.Lib.Services.Protobuf
 {
     public partial class ActionResult : IActionResult
     {
+        public bool IsMaintenanceModeOn { get; set; }
         public IEnumerable<string> Errors { get; set; } = new List<string>();
 
         public void AddErrors(IEnumerable<string> errors)

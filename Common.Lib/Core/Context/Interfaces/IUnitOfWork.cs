@@ -1,4 +1,5 @@
-﻿using Common.Lib.Infrastructure;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Core.Context
 {
@@ -12,6 +13,6 @@ namespace Common.Lib.Core.Context
         void AddEntitySave(Entity entity);
 
 
-        Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = default);
+        Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = default, AuthInfo? info = null, ITraceInfo? trace = null);
     }
 }

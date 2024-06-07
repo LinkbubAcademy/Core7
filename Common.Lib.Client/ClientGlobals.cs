@@ -19,6 +19,42 @@ namespace Common.Lib.Client
 
         public User LogonUser { get; set; }
 
+        public static string AlternativeUserId { get; set; } = "System";
+
+        public static string AlternativeUserEmail { get; set; } = "sys@sys.com";
+        
         public string CurrentHost { get; set; }
+
+
+
+        public static bool IsMaintenanceModeOn
+        {
+            get
+            {
+                return isMaintenanceModeOn;
+            }
+            set
+            {
+                isMaintenanceModeOn = value;
+                SetViewToMaintenanceModeOnOff?.Invoke();
+
+            }
+        }
+        static bool isMaintenanceModeOn;
+
+        public static string MaintenanceModeMessage
+        {
+            get
+            {
+                return maintenanceModeMessage == string.Empty ?
+                                                    "Modo mantenimiento espere por favor" :
+                                                    maintenanceModeMessage;
+            }
+            set { maintenanceModeMessage = value; }
+        }
+        static string maintenanceModeMessage = string.Empty;
+
+
+        public static Action? SetViewToMaintenanceModeOnOff { get; set; }
     }
 }

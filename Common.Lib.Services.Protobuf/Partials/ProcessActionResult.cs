@@ -13,7 +13,8 @@ namespace Common.Lib.Services.Protobuf
             this.OutputType = result.OutputType;
             this.IsCollection = result.IsCollection;
             this.Serialized = result.Serialized;
-            this.OutputClassName = result.OutputClassName;            
+            this.OutputClassName = result.OutputClassName;         
+            this.IsMaintenanceModeOn = result.IsMaintenanceModeOn;
         }
 
         public IProcessActionResult.OutputTypes OutputType

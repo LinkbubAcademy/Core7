@@ -52,12 +52,12 @@ namespace Common.Lib.Core
         public IContextFactory? ContextFactory { get; set; }
 
         [JsonIgnore]
-        public Func<Task<ISaveResult>>? SaveAction { get; set; }
+        public Func<AuthInfo?, ITraceInfo?, Task<ISaveResult>>? SaveAction { get; set; }
         [JsonIgnore]
-        public Func<Task<IDeleteResult>>? DeleteAction { get; set; }
+        public Func<AuthInfo?, ITraceInfo?, Task<IDeleteResult>>? DeleteAction { get; set; }
 
         [JsonIgnore]
-        public Func<Entity> CloneAction { get; set; }
+        public Func<Dictionary<Guid, Entity>, Entity> CloneAction { get; set; }
 
         [JsonIgnore]
         public bool IsAlreadyAssigned { get; set; }
@@ -87,7 +87,22 @@ namespace Common.Lib.Core
         /// <returns>the cloned entity</returns>
         public Entity Clone()
         {
-            return Clone<Entity>();
+            var alreadyCloned = new Dictionary<Guid, Entity>();
+            return Clone<Entity>(alreadyCloned);
+        }
+
+        public async Task<T> CloneFromRepository<T>() where T : Entity, new()
+        {
+            using var repoT = ContextFactory.GetRepository<T>();
+
+            var qr1 = await repoT.FindAsync(this.Id);
+
+            if (qr1.IsSuccess && qr1.Value != null)
+            {
+                var output = qr1.Value.Clone<T>([]);
+                return output;
+            }
+            return null;
         }
 
         /// <summary>
@@ -96,8 +111,11 @@ namespace Common.Lib.Core
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public virtual T Clone<T>() where T : Entity, new()
+        public virtual T Clone<T>(Dictionary<Guid, Entity> alreadyCloned) where T : Entity, new()
         {
+            if (alreadyCloned.ContainsKey(this.Id))
+                return alreadyCloned[this.Id] as T;
+
             var output = new T
             {
                 Origin = this,
@@ -108,15 +126,17 @@ namespace Common.Lib.Core
                 UpdatedOn = UpdatedOn
             };
 
+            alreadyCloned.Add(this.Id, output);
+
             return output;
         }
 
-        public virtual async Task<T> CloneTo<T>() where T : Entity, new()
+        public virtual async Task<T> CloneTo<T>(Dictionary<Guid, Entity> alreadyCloned) where T : Entity, new()
         {
             using var repo = ContextFactory.GetRepository<T>();
             var qr1 = await repo.FindAsync(Id);
             if (qr1.IsSuccess)
-                return qr1.Value.Clone<T>();
+                return qr1.Value.Clone<T>(alreadyCloned);
             else
                 return null;
         }
@@ -309,11 +329,11 @@ namespace Common.Lib.Core
             return Task.FromResult(default(IDeleteResult?));
         }
 
-        public virtual async Task<ISaveResult<T>> SaveAsync<T>() where T : Entity, new()
+        public virtual async Task<ISaveResult<T>> SaveAsync<T>(AuthInfo? info = null, ITraceInfo? trace = null) where T : Entity, new()
         {
             var formatValidation = StaticSaveValidation<T>();
 
-            if(ContextFactory.IsServerMode)
+            if (ContextFactory.IsServerMode)
                 formatValidation = await DynamicSaveValidation<T>();
 
             if (formatValidation != null && !formatValidation.IsSuccess)
@@ -327,7 +347,7 @@ namespace Common.Lib.Core
 
             if (IsNew || Id == default)
             {
-                var output = await repo.AddAsync(entity);
+                var output = await repo.AddAsync(entity, info, trace);
 
                 if (output.IsSuccess && ContextFactory.IsServerMode)
                 {
@@ -337,11 +357,11 @@ namespace Common.Lib.Core
             }
             else
             {
-                return await repo.UpdateAsync(entity);
+                return await repo.UpdateAsync(entity, info, trace);
             }            
         }
 
-        public virtual async Task<IDeleteResult> DeleteAsync<T>() where T : Entity, new()
+        public virtual async Task<IDeleteResult> DeleteAsync<T>(AuthInfo? info = null, ITraceInfo? trace = null) where T : Entity, new()
         {
             var formatValidation = StaticDeleteValidation<T>(); 
             
@@ -354,7 +374,7 @@ namespace Common.Lib.Core
             using var repo = ContextFactory.GetRepository<T>() ??
                 throw new RepositoryNotRegisteredException(typeof(T));
 
-            var output = await repo.DeleteAsync(this.Id);
+            var output = await repo.DeleteAsync(this.Id, info);
 
             if (output.IsSuccess && ContextFactory.IsServerMode)
                 UnassingFromParents();
@@ -382,7 +402,7 @@ namespace Common.Lib.Core
 
         #region Parametric actions
 
-        public virtual async Task<IProcessActionResult?> RequestParametricActionAsync(string repoType, string actionName, object[] actionParams, IUnitOfWork uow)
+        public virtual async Task<IProcessActionResult?> RequestParametricActionAsync(string repoType, string actionName, object[] actionParams, IUnitOfWork uow, TraceInfo? traceInfo = null)
         {
             if (ContextFactory == null)
                 throw new InvalidOperationException("you must get a model through the propel channels, ContextFactory is missing");
@@ -396,9 +416,12 @@ namespace Common.Lib.Core
 
             var userId = Guid.NewGuid(); //todo: implement user auth
             var userToken = string.Empty;//todo: implement user auth
+            var userEmail = string.Empty;
             var paramsCarrier = paramsCarrierFactory.CreateParametricActionParams(
                                                             userId,
                                                             userToken,
+                                                            userEmail,
+                                                            traceInfo,
                                                             DateTime.Now,
                                                             repoType,
                                                             this.Id,

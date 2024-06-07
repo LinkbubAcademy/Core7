@@ -154,7 +154,7 @@ namespace Common.Lib.Server.Context
             }
 
             return output;
-              }
+        }
 
         async Task<QueryResult<Entity>> IServerRepository.FindAsync(Guid id)
         {

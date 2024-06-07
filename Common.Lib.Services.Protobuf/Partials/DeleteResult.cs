@@ -5,6 +5,7 @@ namespace Common.Lib.Services.Protobuf
 {
     public partial class DeleteResult : IDeleteResult
     {
+        public bool IsMaintenanceModeOn { get; set; }
         public DeleteResult(IDeleteResult deleteResult)
         {
             IsSuccess = deleteResult.IsSuccess;

@@ -1,4 +1,5 @@
-﻿using Common.Lib.Infrastructure.Actions;
+﻿using Common.Lib.Core;
+using Common.Lib.Infrastructure.Actions;
 using Common.Lib.Services;
 
 namespace Common.Lib.Infrastructure
@@ -28,13 +29,16 @@ namespace Common.Lib.Infrastructure
             switch (OutputClassName)
             {
                 case "Guid":
-                    output = new QueryResult<Guid>() { IsSuccess = this.IsSuccess, Value = Guid.Parse(Serialized) };
+                    output = new QueryResult<Guid>() { IsSuccess = this.IsSuccess, Value = EntityMetadata.DeserializeGuid(Serialized) };
                     break;
                 case "Bool":
-                    output = new QueryResult<bool>() { IsSuccess = this.IsSuccess, Value = Serialized == "True" };
+                    output = new QueryResult<bool>() { IsSuccess = this.IsSuccess, Value = EntityMetadata.DeserializeBool(Serialized) };
                     break;
                 case "String":
-                    output = new QueryResult<string>() { IsSuccess = this.IsSuccess, Value = Serialized };
+                    output = new QueryResult<string>() { IsSuccess = this.IsSuccess, Value = EntityMetadata.DeserializeString(Serialized) };
+                    break;
+                case "Double":
+                    output = new QueryResult<double>() { IsSuccess = this.IsSuccess, Value = EntityMetadata.DeserializeDouble(Serialized) };
                     break;
                 default:
                     Log.WriteLine(OutputClassName);
@@ -42,46 +46,21 @@ namespace Common.Lib.Infrastructure
 
             }
 
-            output.Message = Message;
             output.IsSuccess = IsSuccess;
+            output.IsMaintenanceModeOn = IsMaintenanceModeOn;
+            output.Message = Message;
             output.AddErrors(Errors);
 
             return output;
         }
-
-        //public IActionResult ToQueryResultListSimpleType()
-        //{
-        //    // todo: completar
-        //    IActionResult output = null;
-        //    switch (OutputClassName)
-        //    {
-        //        case "Guid":
-        //            output = new QueryResult<List<Guid>>() { IsSuccess = this.IsSuccess, Value = Guid.Parse(Serialized) };
-        //            break;
-        //        case "Bool":
-        //            output = new QueryResult<List<bool>>() { IsSuccess = this.IsSuccess, Value = Serialized == "True" };
-        //            break;
-        //        case "String":
-        //            output = new QueryResult<List<string>>() { IsSuccess = this.IsSuccess, Value = Serialized };
-        //            break;
-        //        default:
-        //            Log.WriteLine(OutputClassName);
-        //            return new QueryResult();
-
-        //    }
-
-        //    output.Message = Message;
-        //    output.IsSuccess = IsSuccess;
-        //    output.AddErrors(Errors);
-
-        //    return output;
-        //}
 
         public QueryResult<TDto> ToQueryResultDto<TDto>() where TDto : Dto, new()
         {
             var output = new QueryResult<TDto>()
             {
                 IsSuccess = this.IsSuccess,
+                IsMaintenanceModeOn = this.IsMaintenanceModeOn,
+                Message = this.Message,
                 Value = Dto.ElementFromString<TDto>(Serialized)
             };
 
@@ -93,12 +72,12 @@ namespace Common.Lib.Infrastructure
             var output = new QueryResult<List<TDto>>()
             {
                 IsSuccess = this.IsSuccess,
+                IsMaintenanceModeOn = this.IsMaintenanceModeOn,
+                Message = this.Message,
                 Value = Dto.CollectionFromString<TDto>(Serialized)
             };
 
             return output;
-
         }
-
     }
 }

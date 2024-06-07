@@ -1,8 +1,6 @@
 ﻿using Common.Lib.Core;
 using Common.Lib.Core.Metadata;
 using Common.Lib.Core.Tracking;
-using Google.Protobuf.WellKnownTypes;
-using System;
 
 namespace Common.Lib.Services.Protobuf
 {

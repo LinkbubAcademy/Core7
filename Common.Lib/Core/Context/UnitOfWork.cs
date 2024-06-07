@@ -1,4 +1,5 @@
-﻿using Common.Lib.Infrastructure;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Core.Context
 {
@@ -27,7 +28,7 @@ namespace Common.Lib.Core.Context
             });
         }
 
-        public virtual async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null)
+        public virtual async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             throw new NotImplementedException();
         }

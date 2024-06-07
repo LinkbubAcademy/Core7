@@ -35,7 +35,7 @@ namespace Common.Lib.Core.Context
         {
             var output = ServiceProvider.GetService(typeof(T));
 
-            if(output is IContextElement)
+            if (output is IContextElement)
             {
                 ((IContextElement)output).ContextFactory = this;
             }
@@ -93,7 +93,7 @@ namespace Common.Lib.Core.Context
             if (!qre.IsSuccess)
                 return qre;
 
-            var entity = qre.Value.CloneAction();
+            var entity = qre.Value.CloneAction(null);
 
             entity.Id = entityInfo.EntityId;
             entity.ContextFactory = this;

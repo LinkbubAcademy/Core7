@@ -4,6 +4,7 @@ namespace Common.Lib.Services.Protobuf
 {
     public partial class UnitOfWorkResult : IActionResult
     {
+        public bool IsMaintenanceModeOn { get; set; }
         public UnitOfWorkResult(IActionResult actionResult)
         {
             IsSuccess = actionResult.IsSuccess;

@@ -1,20 +1,25 @@
 ﻿using Common.Lib.Core.Tracking;
+using Common.Lib.Infrastructure;
 using Common.Lib.Services.ParamsCarriers;
 
 namespace Common.Lib.Services.Protobuf
 {
     public partial class DeleteEntityParamsCarrier : IDeleteEntityParamsCarrier
     {
-        public DeleteEntityParamsCarrier(Guid userId, string userToken, DateTime actionTime, Guid entityId, string entityModelType)
+        public ITraceInfo? TraceInfo { get; set; }
+
+        public DeleteEntityParamsCarrier(Guid userId, string userToken, string userEmail, ITraceInfo? traceInfo, DateTime actionTime, Guid entityId, string entityModelType)
         {     
             EntityId = entityId;
             EntityModelType = entityModelType;
+            TraceInfo = traceInfo;
 
             this.ServiceInfo = new ParamsCarrierInfo()
             {
                 UserId = userId,
                 UserToken = userToken,
-                ActionTime = actionTime
+                ActionTime = actionTime,
+                TraceInfo = traceInfo,
             };
         }
         public Guid EntityId
@@ -49,6 +54,18 @@ namespace Common.Lib.Services.Protobuf
             set
             {
                 this.ServiceInfo.UserToken = value;
+            }
+        }
+
+        public string UserEmail
+        {
+            get
+            {
+                return this.ServiceInfo.UserEmail;
+            }
+            set
+            {
+                this.ServiceInfo.UserEmail = value;
             }
         }
         public DateTime ActionTime

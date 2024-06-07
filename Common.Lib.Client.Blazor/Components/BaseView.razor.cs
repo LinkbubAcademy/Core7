@@ -35,6 +35,21 @@ namespace Common.Lib.Client.Components
         }
         bool _isWaitingResponseAsync;
 
+        public bool IsMaintenanceModeOn
+        {
+            get
+            {
+                return ClientGlobals.IsMaintenanceModeOn;
+            }
+        }
+
+        public string MaintenanceModeMessage
+        { 
+            get
+            {
+                return ClientGlobals.MaintenanceModeMessage;
+            }
+        }
         public BaseView()
         {
         }
@@ -75,6 +90,8 @@ namespace Common.Lib.Client.Components
         {
             if (!result)
                 await ShowErrorsAsync();
+
+            ViewModel.Errors.Clear();
 
             return result;
         }

@@ -1,4 +1,5 @@
-﻿using Common.Lib.Core.Tracking;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Core.Tracking;
 using Common.Lib.DataAccess.EFCore;
 using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
@@ -65,7 +66,7 @@ namespace Common.Lib.Core.Context
             DbSetProvider = dbSetProvider;
         }
 
-        public override async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null)
+        public override async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             if (actions != null)
                 UowActions = actions.ToList();
@@ -109,7 +110,22 @@ namespace Common.Lib.Core.Context
 
                                 LastNewDateTime = LastNewDateTime.AddMilliseconds(0.001);
 
-                                entityToAdd.SaveAction();
+                                trace?.AddTrace($"Procesando add entity tipo {type} con Id {entityToAdd.Id.ToString()} en ServerUoW");
+
+                                var sr = await entityToAdd.SaveAction(info, trace);
+
+                                trace?.AddTrace($"Procesando add entity tipo {type} con Id {entityToAdd.Id.ToString()} en ServerUoW. Resultado IsSuccess:{sr.IsSuccess.ToString()}");
+
+                                if (!sr.IsSuccess)
+                                {
+                                    var o = new ActionResult();
+                                    o.IsSuccess = false;
+                                    o.AddErrors(sr.Errors);
+
+                                    trace?.AddTrace($"Procesando add entity tipo {type} con Id {entityToAdd.Id.ToString()} en ServerUoW. Errores:{string.Join("\n", sr.Errors)}");
+
+                                    return o;
+                                }
                             }
                             else
                             {
@@ -133,7 +149,20 @@ namespace Common.Lib.Core.Context
                                     EntitiesInUoW.Add(ue.Id, ue);
 
                                 //ue.AssignParents(entities);
-                                ue.SaveAction();
+                                trace?.AddTrace($"Procesando update entity tipo {type} con Id {ue.Id.ToString()} en ServerUoW");
+                                var sr = await ue.SaveAction(info, trace);
+                                trace?.AddTrace($"Procesando update entity tipo {type} con Id {ue.Id.ToString()} en ServerUoW. Resultado IsSuccess:{sr.IsSuccess.ToString()}");
+
+                                if (!sr.IsSuccess)
+                                {
+                                    var o = new ActionResult();
+                                    o.IsSuccess = false;
+                                    o.AddErrors(sr.Errors);
+
+                                    trace?.AddTrace($"Procesando update entity tipo {type} con Id {ue.Id.ToString()} en ServerUoW. Errores:{string.Join("\n", sr.Errors)}");
+
+                                    return o;
+                                }
                             }
                             else
                             {
@@ -152,7 +181,17 @@ namespace Common.Lib.Core.Context
                         {
                             var entityToRemove = qrEntityToRemove.Value;
                             entityToRemove.ContextFactory = this;
-                            entityToRemove.DeleteAction();
+                            trace?.AddTrace($"Procesando delete entity tipo {type} con Id {entityToRemove.Id.ToString()} en ServerUoW");
+                            var dr = await entityToRemove.DeleteAction(info, trace);
+                            trace?.AddTrace($"Procesando delete entity tipo {type} con Id {entityToRemove.Id.ToString()} en ServerUoW. Resultado IsSuccess:{dr.IsSuccess.ToString()}");
+                            if (!dr.IsSuccess)
+                            {
+                                var o = new ActionResult();
+                                o.IsSuccess = false;
+                                o.AddErrors(dr.Errors);
+                                trace?.AddTrace($"Procesando delete entity tipo {type} con Id {entityToRemove.Id.ToString()} en ServerUoW. Errores:{string.Join("\n", dr.Errors)}");
+                                return o;
+                            }
                         }
                         TimeInfoLog?.AddTimeEntry($"UOW_end___Delete_{type}_Id:{change.EntityId}:");
                         break;
@@ -186,6 +225,7 @@ namespace Common.Lib.Core.Context
                         if (efromdb == null)
                         {
                             ((UowNotificationHandler)NotificationHandler).DeleteNotification(id);
+                            trace?.AddTrace($"Persistencia fallida para la entidad {id} tipo {type} en ServerUoW. Precaución Loop infinito");
                             entity.Save(uowAlt);
                             saveAltRequired = true;
                         }
@@ -194,6 +234,7 @@ namespace Common.Lib.Core.Context
                            
                 if (saveAltRequired)
                 {
+                    trace?.AddTrace($"Repitiendo el commit con las entidades fallidas en ServerUoW. Precaución Loop infinito");
                     var srAlt = await uowAlt.CommitAsync();
                 }
 
@@ -205,7 +246,6 @@ namespace Common.Lib.Core.Context
 
                 if (ParentUoW == null)
                 {
-
                     TimeInfoLog?.AddTimeEntry("UOW handle notification start");
                     ((UowNotificationHandler)NotificationHandler).HandlerAllNotifications();
                     TimeInfoLog?.AddTimeEntry("UOW handle notification end");
@@ -255,7 +295,6 @@ namespace Common.Lib.Core.Context
 
             return output;
         }
-
 
         public Entity ReconstructEntity(IEntityInfo entityInfo)
         {

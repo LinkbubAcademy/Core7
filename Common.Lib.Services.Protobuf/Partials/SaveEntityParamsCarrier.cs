@@ -1,18 +1,23 @@
 ﻿using Common.Lib.Core.Tracking;
+using Common.Lib.Infrastructure;
 using Common.Lib.Services.ParamsCarriers;
 
 namespace Common.Lib.Services.Protobuf
 {
     public partial class SaveEntityParamsCarrier : ISaveEntityParamsCarrier
     {
-        public SaveEntityParamsCarrier(Guid userId, string userToken, DateTime actionTime, IEntityInfo entityInfo)
-        {            
+        public ITraceInfo? TraceInfo { get; set; }
+        public SaveEntityParamsCarrier(Guid userId, string userToken, string userEmail, ITraceInfo? traceInfo, DateTime actionTime, IEntityInfo entityInfo)
+        {
+            TraceInfo = traceInfo;
             this.EntityInfo = new EntityInfo(entityInfo);
             this.ServiceInfo = new ParamsCarrierInfo()
             {
                 UserId = userId,
                 UserToken = userToken,
-                ActionTime = actionTime
+                UserEmail = userEmail,
+                ActionTime = actionTime,
+                TraceInfo = traceInfo,
             };
         }
 
@@ -38,6 +43,19 @@ namespace Common.Lib.Services.Protobuf
                 this.ServiceInfo.UserToken = value;
             }
         }
+
+        public string UserEmail
+        {
+            get
+            {
+                return this.ServiceInfo.UserEmail;
+            }
+            set
+            {
+                this.ServiceInfo.UserEmail = value;
+            }
+        }
+
         public DateTime ActionTime
 
         {

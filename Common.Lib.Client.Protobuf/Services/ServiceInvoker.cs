@@ -27,6 +27,13 @@ namespace Common.Lib.Client.Services
             Channel = new CoreServices.CoreServicesClient(channel);
         }
 
+        void ActivateMaintenanceMode(string msg)
+        {
+            ClientGlobals.IsMaintenanceModeOn = true;
+            ClientGlobals.MaintenanceModeMessage = msg;
+            ClientGlobals.SetViewToMaintenanceModeOnOff?.Invoke();            
+        }
+
         public async Task<ISaveResult<TEntity>> AddNewEntityRequestAsync<TEntity>(ISaveEntityParamsCarrier paramsCarrier) where TEntity : Entity, new()
         {
             if (paramsCarrier is not SaveEntityParamsCarrier)
@@ -37,6 +44,9 @@ namespace Common.Lib.Client.Services
             }
 
             var result = await Channel.RequestAddNewEntityAsync((SaveEntityParamsCarrier)paramsCarrier);
+
+            if (result.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.Message);
 
             var output = new SaveResult<TEntity>
             {
@@ -64,8 +74,11 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
-            var result = await Channel.RequestUpdateEntityAsync((SaveEntityParamsCarrier)paramsCarrier); 
-            
+            var result = await Channel.RequestUpdateEntityAsync((SaveEntityParamsCarrier)paramsCarrier);
+
+            if (result.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.Message);
+
             var output = new SaveResult<TEntity>
             {
                 IsSuccess = result.IsSuccess,
@@ -93,6 +106,10 @@ namespace Common.Lib.Client.Services
             }
 
             var output = await Channel.RequestDeleteEntityAsync((DeleteEntityParamsCarrier)paramsCarrier);
+
+            if (output.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(output.Message);
+
             return output;
         }
 
@@ -107,6 +124,10 @@ namespace Common.Lib.Client.Services
 
             var output = await Channel.RequestServiceActionAsync((ServiceActionParamsCarrier)paramsCarrier,
                                                                     deadline: DateTime.UtcNow.AddSeconds(200));
+
+            if (output.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(output.Message);
+
             Log.WriteLine("RequestServiceActionAsync.IsSuccess " + output.IsSuccess + " serializedValue: " + output.Serialized);
             return output;
         }
@@ -121,6 +142,10 @@ namespace Common.Lib.Client.Services
             }
 
             var output = await Channel.RequestParametricActionAsync((ParametricActionParamsCarrier)paramsCarrier);
+
+            if (output.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(output.Message);
+
             Log.WriteLine("RequestParametricActionAsync.IsSuccess " + output.IsSuccess + " serializedValue: " + output.Serialized);
             return output;
         }
@@ -136,6 +161,9 @@ namespace Common.Lib.Client.Services
 
             var result = await Channel.QueryRepositoryForEntityAsync((QueryRepositoryParamsCarrier)paramsCarrier);
 
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
+
             return new QueryResult<TEntity>()
             {
                 IsSuccess = result.ActionResult.IsSuccess,
@@ -150,7 +178,7 @@ namespace Common.Lib.Client.Services
 
         public async Task<QueryResult<List<TEntity>>> QueryRepositoryForEntities<TEntity>(IQueryRepositoryParamsCarrier paramsCarrier) where TEntity : Entity, new()
         {
-            //Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 1");
+            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 1");
 
             if (paramsCarrier is not QueryRepositoryParamsCarrier)
             {
@@ -159,22 +187,32 @@ namespace Common.Lib.Client.Services
                     $"(Common.Lib.Services.Protobuf.ParamsCarrierFactory");
             }
 
-            //Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 2");
-            var result = await Channel.QueryRepositoryForEntitiesAsync((QueryRepositoryParamsCarrier)paramsCarrier);
-
-            //Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 3");
-            var value = result.SValue.Select(x => ContextFactory.ReconstructEntity<TEntity>(x)).ToList();
-            
-            return new QueryResult<List<TEntity>>()
+            Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 2");
+            try
             {
-                IsSuccess = result.ActionResult.IsSuccess,
-                Message = result.ActionResult.Message,
-                Value = value,
-                ReferencedEntities = result
-                            .SReferencedEntities
-                            .ToDictionary(x => Guid.Parse(x.Key), 
-                                            x => ContextFactory.ReconstructEntity(x.Value))
-            };
+                var result = await Channel.QueryRepositoryForEntitiesAsync((QueryRepositoryParamsCarrier)paramsCarrier);
+
+                if (result.ActionResult.IsMaintenanceModeOn)
+                    ActivateMaintenanceMode(result.ActionResult.Message);
+
+                Log.WriteLine("ServiceInvoker QueryRepositoryForEntities 3");
+                var value = result.SValue.Select(x => ContextFactory.ReconstructEntity<TEntity>(x)).ToList();
+
+                return new QueryResult<List<TEntity>>()
+                {
+                    IsSuccess = result.ActionResult.IsSuccess,
+                    Message = result.ActionResult.Message,
+                    Value = value,
+                    ReferencedEntities = result
+                                .SReferencedEntities
+                                .ToDictionary(x => Guid.Parse(x.Key),
+                                                x => ContextFactory.ReconstructEntity(x.Value))
+                };
+            }
+            catch(Exception e1)
+            {
+                throw e1;
+            }
         }
         
         #region Get Value
@@ -188,7 +226,10 @@ namespace Common.Lib.Client.Services
             }
 
             var result = await Channel.QueryRepositoryForBoolAsync((QueryRepositoryParamsCarrier)paramsCarrier);
-            
+
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
+
             var parseFunc = EntityInfo.GetParseFunc<bool>();
 
             return new QueryResult<bool>()
@@ -211,6 +252,9 @@ namespace Common.Lib.Client.Services
 
             var result = await Channel.QueryRepositoryForIntAsync((QueryRepositoryParamsCarrier)paramsCarrier);
 
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
+
             var parseFunc = EntityInfo.GetParseFunc<int>();
 
             return new QueryResult<int>()
@@ -231,6 +275,9 @@ namespace Common.Lib.Client.Services
             }
 
             var result = await Channel.QueryRepositoryForDoubleAsync((QueryRepositoryParamsCarrier)paramsCarrier);
+
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
 
             var parseFunc = EntityInfo.GetParseFunc<double>();
 
@@ -253,6 +300,9 @@ namespace Common.Lib.Client.Services
 
             var result = await Channel.QueryRepositoryForDoubleAsync((QueryRepositoryParamsCarrier)paramsCarrier);
 
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
+
             var parseFunc = EntityInfo.GetParseFunc<string>();
 
             return new QueryResult<string>()
@@ -273,6 +323,9 @@ namespace Common.Lib.Client.Services
             }
 
             var result = await Channel.QueryRepositoryForDateTimeAsync((QueryRepositoryParamsCarrier)paramsCarrier);
+
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
 
             var parseFunc = EntityInfo.GetParseFunc<DateTime>();
 
@@ -296,6 +349,9 @@ namespace Common.Lib.Client.Services
 
             var result = await Channel.QueryRepositoryForGuidAsync((QueryRepositoryParamsCarrier)paramsCarrier);
 
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
+
             var parseFunc = EntityInfo.GetParseFunc<Guid>();
 
             return new QueryResult<Guid>()
@@ -318,7 +374,10 @@ namespace Common.Lib.Client.Services
             }
 
             var result = await Channel.QueryRepositoryForValuesAsync((QueryRepositoryParamsCarrier)paramsCarrier);
-            
+
+            if (result.ActionResult.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(result.ActionResult.Message);
+
             var parseFunc = EntityInfo.GetParseFunc<TValue>();
 
             return new QueryResult<List<TValue>>()
@@ -340,6 +399,10 @@ namespace Common.Lib.Client.Services
 
             Log.WriteLine(msg: $"actions {paramsCarrier.UowActions.Count()}");
             var output = await Channel.RequestUnityOfWorkOperationsAsync((UnitOfWorkParamsCarrier)paramsCarrier);
+
+            if (output.IsMaintenanceModeOn)
+                ActivateMaintenanceMode(output.Message);
+
             return output;
         }
     }

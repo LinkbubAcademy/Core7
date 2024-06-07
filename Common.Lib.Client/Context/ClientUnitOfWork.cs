@@ -1,4 +1,6 @@
-﻿using Common.Lib.Infrastructure;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Client;
+using Common.Lib.Infrastructure;
 using Common.Lib.Services;
 using Common.Lib.Services.ParamsCarriers;
 
@@ -11,7 +13,6 @@ namespace Common.Lib.Core.Context
 
         static Guid UserId { get; set; } = Guid.NewGuid(); //todo: implement user auth
 
-        static string UserToken { get; set; } = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 
         public ClientUnitOfWork(IServiceInvoker serviceInvoker, IParamsCarrierFactory paramsCarrierFactory)
         {
@@ -19,12 +20,14 @@ namespace Common.Lib.Core.Context
             ParamsCarrierFactory = paramsCarrierFactory;
         }
 
-        public override async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null)
+        public override async Task<IActionResult> CommitAsync(IEnumerable<IUoWActInfo>? actions = null, AuthInfo? authInfo = null, ITraceInfo? trace = null)
         {
             Log.WriteLine("ClientUnitOfWork CommitAsync paramsCarrier");
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateUnitOfWorkParams(userId: UserId,
-                                        userToken: UserToken,
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: trace,
                                         actionTime: DateTime.Now,
                                         UowActions.Select(x => (IUoWActInfo)x));
 

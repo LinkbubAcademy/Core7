@@ -1,4 +1,5 @@
-﻿using Common.Lib.Core;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Core.Expressions;
 using Common.Lib.Infrastructure;
@@ -16,6 +17,7 @@ namespace Common.Lib.DataAccess.EFCore
         public bool BelongsToUnitOfWork { get; set; }
 
         public abstract void InitCacheItems();
+        public abstract void ReinitCacheItems();
 
         public abstract IEnumerable<Entity> GetReader();
         
@@ -90,27 +92,20 @@ namespace Common.Lib.DataAccess.EFCore
             return !addToCache.IsSuccess ? addToCache.CastoTo<T>() : default;
         }
 
-        public virtual async Task<ISaveResult<T>> AddAsync(T entity)
+        public virtual async Task<ISaveResult<T>> AddAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
 
             var parents = entity.GetParents();
             var saveResult = Add(entity);
+
             if (!saveResult.IsSuccess)
                 return saveResult;
-
-            int commitResult = 0;
-
-            try
-            {
-                commitResult = await DbSetProvider.SaveChangesAsync();
-                entity.AssignParents(parents);
-            }
-            catch(Exception e)
-            {
-                var a = e;
-            }
+                        
+            var commitResult = await DbSetProvider.SaveChangesAsync();
+            entity.AssignParents(parents);
+            
 
             saveResult = new SaveResult<T>()
             {
@@ -164,7 +159,7 @@ namespace Common.Lib.DataAccess.EFCore
             return !updateToCache.IsSuccess ? updateToCache.CastoTo<T>() : default;
         }
 
-        public virtual async Task<ISaveResult<T>> UpdateAsync(T entity)
+        public virtual async Task<ISaveResult<T>> UpdateAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
@@ -229,7 +224,7 @@ namespace Common.Lib.DataAccess.EFCore
             };
         }
 
-        public virtual async Task<IDeleteResult> DeleteAsync(Guid id)
+        public virtual async Task<IDeleteResult> DeleteAsync(Guid id, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             if (DbSetProvider == null)
                 throw new Exception("DbSetProvider is null");
@@ -524,15 +519,21 @@ namespace Common.Lib.DataAccess.EFCore
 
             if (CacheItems.CountItems<T>() == 0)
             {
-                // probamos para ver cuántos Requests nos devuelven
-                var itemList = DbSet.ToList();
-                var wlist = DbSet.Where(x => true).ToList();
+                //// probamos para ver cuántos Requests nos devuelven
+                //var itemList = DbSet.ToList();
+                //var wlist = DbSet.Where(x => true).ToList();
 
                 foreach (var item in DbSet)
                 {
                     CacheItems.Add(item);
                 }
             }
-        }        
+        }
+
+        public override void ReinitCacheItems()
+        {
+            CacheItems.Clear();
+            InitCacheItems();
+        }
     }
 }

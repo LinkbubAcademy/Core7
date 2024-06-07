@@ -26,14 +26,15 @@ namespace Common.Lib.Authentication
         /// to be compared to get changes
         /// </summary>
         /// <returns>User</returns>
-        public new User Clone()
+        public new User Clone(Dictionary<Guid, Entity> alreadyCloned = null)
         {
-            return Clone<User>();
+            alreadyCloned ??= [];
+            return Clone<User>(alreadyCloned);
         }
 
-        public override T Clone<T>()
+        public override T Clone<T>(Dictionary<Guid, Entity> alreadyCloned)
         {
-            if (base.Clone<T>() is User output && output is T result)
+            if (base.Clone<T>(alreadyCloned) is User output && output is T result)
             {
                 output.Email = Email;
                 output.Password = Password;
@@ -121,19 +122,19 @@ namespace Common.Lib.Authentication
             return await this.SaveAsync<User>();
         }
 
-        public override async Task<ISaveResult<T>> SaveAsync<T>() 
+        public override async Task<ISaveResult<T>> SaveAsync<T>(AuthInfo? info = null, ITraceInfo? trace = null) 
         {
-            return await base.SaveAsync<T>();
+            return await base.SaveAsync<T>(info, trace);
         }        
 
-        public virtual async Task<IDeleteResult> DeleteAsync()
+        public virtual async Task<IDeleteResult> DeleteAsync(AuthInfo? info = null, ITraceInfo? trace = null)
         {
-            return await this.DeleteAsync<User>();
+            return await this.DeleteAsync<User>(info, trace);
         }
 
-        public override async Task<IDeleteResult> DeleteAsync<T>()
+        public override async Task<IDeleteResult> DeleteAsync<T>(AuthInfo? info = null, ITraceInfo? trace = null)
         {
-            return await base.DeleteAsync<T>();
+            return await base.DeleteAsync<T>(info, trace);
         }
 
         #endregion

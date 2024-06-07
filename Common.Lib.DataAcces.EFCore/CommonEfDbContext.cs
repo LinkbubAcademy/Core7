@@ -118,6 +118,33 @@ namespace Common.Lib.DataAccess.EFCore
             }
         }
 
+        public void ReinitWrappersCacheItems(IContextFactory ctx)
+        {
+            try
+            {
+                foreach (var wrapper in DbSetsWrappers)
+                {
+                    wrapper.Value.ReinitCacheItems();
+                    Log.WriteLine("reinit cache for " + wrapper.Key.FullName);
+                }
+
+                foreach (var dbset in DbSetsWrappers.Values)
+                {
+                    foreach (var entity in dbset.GetReader())
+                    {
+                        entity.ContextFactory = ctx;
+                        entity.AssignToParents();
+                    }
+                }
+            }
+            catch (Exception e1)
+            {
+                var a = e1;
+                Log.WriteLine("failed to reinit cache");
+            }
+        }
+
+
         //public void UnloadToMemoryAfterTransactionFail()
         //{
         //    foreach(var item in DbSetsWrappers)

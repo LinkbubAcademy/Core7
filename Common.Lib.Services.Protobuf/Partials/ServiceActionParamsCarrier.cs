@@ -1,11 +1,15 @@
-﻿using Common.Lib.Services.ParamsCarriers;
+﻿using Common.Lib.Infrastructure;
+using Common.Lib.Services.ParamsCarriers;
 
 namespace Common.Lib.Services.Protobuf
 {
     public partial class ServiceActionParamsCarrier : IServiceActionParamsCarrier
     {
+        public ITraceInfo? TraceInfo { get; set; }
         public ServiceActionParamsCarrier(Guid userId, 
-                                                string userToken, 
+                                                string userToken,
+                                                string userEmail,
+                                                ITraceInfo? traceInfo,
                                                 DateTime actionTime,
                                                 string serviceTypeName,
                                                 string serviceActionName, 
@@ -15,7 +19,9 @@ namespace Common.Lib.Services.Protobuf
             {
                 UserId = userId,
                 UserToken = userToken,
-                ActionTime = actionTime
+                UserEmail = userEmail,
+                ActionTime = actionTime,
+                TraceInfo = traceInfo,
             };
             this.ServiceType = serviceTypeName;
             this.ServiceActionName = serviceActionName;
@@ -42,6 +48,17 @@ namespace Common.Lib.Services.Protobuf
             set
             {
                 this.ServiceInfo.UserToken = value;
+            }
+        }
+        public string UserEmail
+        {
+            get
+            {
+                return this.ServiceInfo.UserEmail;
+            }
+            set
+            {
+                this.ServiceInfo.UserEmail = value;
             }
         }
         public DateTime ActionTime

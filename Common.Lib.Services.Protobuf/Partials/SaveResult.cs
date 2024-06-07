@@ -6,6 +6,7 @@ namespace Common.Lib.Services.Protobuf
 {
     public partial class SaveResult : ISaveResult
     {
+        public bool IsMaintenanceModeOn { get; set; }
         public SaveResult(ISaveResult saveResult)
         {
             IsSuccess = saveResult.IsSuccess;

@@ -4,7 +4,7 @@
     {
 		public bool IsSuccess { get; set; }
         public string Message { get; set; } = string.Empty;
-
+        public bool IsMaintenanceModeOn { get; set; }
 
         public IEnumerable<string> Errors
         {
@@ -13,6 +13,7 @@
                 return this._errors;
             }
         }
+
 
         readonly List<string> _errors = new();
 

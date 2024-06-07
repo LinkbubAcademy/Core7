@@ -62,15 +62,19 @@ namespace Common.Lib.Infrastructure.Actions
                     case IProcessActionResult.OutputTypes.SimpleType:
                         if (className == "Guid")
                         {
-                            output.Serialized = Value.ToString();
+                            output.Serialized = EntityMetadata.SerializeGuid(Value);
                         }
                         else if(className =="Bool")
                         {
-                            output.Serialized = Value.ToString();
+                            output.Serialized = EntityMetadata.SerializeBool(Value);
                         }
                         else if (className == "String")
                         {
-                            output.Serialized = Value.ToString();
+                            output.Serialized = EntityMetadata.SerializeString(Value);
+                        }
+                        else if (className == "Double")
+                        {
+                            output.Serialized = EntityMetadata.SerializeDouble(Value);
                         }
                         break;
                     case IProcessActionResult.OutputTypes.Dto:

@@ -3,11 +3,14 @@ using Common.Lib.Core;
 using Common.Lib.Core.Expressions;
 using Common.Lib.Core.Tracking;
 using Common.Lib.Services.ParamsCarriers;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Services.Protobuf
 {
     public partial class QueryRepositoryParamsCarrier : IQueryRepositoryParamsCarrier
     {
+        public ITraceInfo? TraceInfo { get; set; }
+
         public IEnumerable<IQueryOperationInfo> Operations
         {
             get
@@ -17,6 +20,8 @@ namespace Common.Lib.Services.Protobuf
         }
         public QueryRepositoryParamsCarrier(Guid userId,
                                             string userToken,
+                                            string userEmail,
+                                            ITraceInfo? traceInfo,
                                             DateTime actionTime,
                                             string repoTypeName,
                                             List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations,
@@ -28,7 +33,9 @@ namespace Common.Lib.Services.Protobuf
             {
                 UserId = userId,
                 UserToken = userToken,
-                ActionTime = actionTime
+                UserEmail = userEmail,
+                ActionTime = actionTime,
+                TraceInfo = traceInfo
             };
 
             foreach (var operation in operations)
@@ -59,6 +66,19 @@ namespace Common.Lib.Services.Protobuf
                 this.ServiceInfo.UserToken = value;
             }
         }
+
+        public string UserEmail
+        {
+            get
+            {
+                return this.ServiceInfo.UserEmail;
+            }
+            set
+            {
+                this.ServiceInfo.UserEmail = value;
+            }
+        }
+
         public DateTime ActionTime
 
         {

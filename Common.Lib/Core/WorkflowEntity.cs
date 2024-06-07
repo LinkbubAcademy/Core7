@@ -1,4 +1,5 @@
-﻿using Common.Lib.Core.Context;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Core.Context;
 using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 
@@ -14,9 +15,9 @@ namespace Common.Lib.Core
 
         #region Save
 
-        public override async Task<ISaveResult<T>> SaveAsync<T>()
+        public override async Task<ISaveResult<T>> SaveAsync<T>(AuthInfo? info = null, ITraceInfo? trace = null)
         {
-            return await base.SaveAsync<T>();
+            return await base.SaveAsync<T>(info, trace);
         }
 
         #endregion

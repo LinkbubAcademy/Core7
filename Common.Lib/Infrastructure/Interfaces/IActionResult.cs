@@ -4,6 +4,8 @@
     {
         bool IsSuccess { get; set; }
         string Message { get; set; }
+
+        bool IsMaintenanceModeOn { get; set; }
         IEnumerable<string> Errors { get; }
         public void WriteLog(string action)
         {
@@ -14,7 +16,5 @@
         {
             ((List<string>)Errors).AddRange(errors);
         }
-
-
     }
 }

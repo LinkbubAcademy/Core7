@@ -1,8 +1,11 @@
-﻿using Common.Lib.Core.Expressions;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Client;
+using Common.Lib.Core.Expressions;
 using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using Common.Lib.Services;
 using Common.Lib.Services.ParamsCarriers;
+using System.Diagnostics;
 using System.Diagnostics.Tracing;
 
 namespace Common.Lib.Core.Context
@@ -21,12 +24,14 @@ namespace Common.Lib.Core.Context
             ParamsCarrierFactory = paramsCarrierFactory;
         }
 
-        public async Task<ISaveResult<T>> AddAsync(T entity)
+        public async Task<ISaveResult<T>> AddAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             var paramsCarrier = ParamsCarrierFactory
                                 .CreateSaveEntityParams(
                                         userId: UserId,
-                                        userToken: Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: trace,
                                         actionTime: DateTime.Now,
                                         entityInfo: entity.GetChanges());
 
@@ -35,13 +40,15 @@ namespace Common.Lib.Core.Context
             return await Task.FromResult(response);
         }
 
-        public async Task<IDeleteResult> DeleteAsync(Guid id)
+        public async Task<IDeleteResult> DeleteAsync(Guid id, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             var output = new DeleteResult();
             var paramsCarrier = ParamsCarrierFactory
                                 .CreateDeleteEntityParams(
                                         userId: UserId,
-                                        userToken: Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: trace,
                                         actionTime: DateTime.Now,
                                         entityId: id,
                                         entityModelType: typeof(T).FullName);
@@ -53,14 +60,16 @@ namespace Common.Lib.Core.Context
             return await Task.FromResult(output);
         }
 
-        public async Task<ISaveResult<T>> UpdateAsync(T entity)
+        public async Task<ISaveResult<T>> UpdateAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             //var output = new SaveResult<T>();
 
             var paramsCarrier = ParamsCarrierFactory
                                 .CreateSaveEntityParams(
                                         userId: UserId,
-                                        userToken: Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: trace,
                                         actionTime: DateTime.Now,
                                         entityInfo: entity.GetChanges());
 
@@ -82,7 +91,9 @@ namespace Common.Lib.Core.Context
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
-                                        userToken: UserToken,
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -116,7 +127,9 @@ namespace Common.Lib.Core.Context
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
-                                        userToken: UserToken,
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -136,7 +149,9 @@ namespace Common.Lib.Core.Context
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
-                                        userToken: UserToken,
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -165,7 +180,9 @@ namespace Common.Lib.Core.Context
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
-                                        userToken: UserToken,
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -181,6 +198,8 @@ namespace Common.Lib.Core.Context
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
                                         userToken: UserToken,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -196,6 +215,8 @@ namespace Common.Lib.Core.Context
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
                                         userToken: UserToken,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -211,6 +232,8 @@ namespace Common.Lib.Core.Context
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
                                         userToken: UserToken,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -225,6 +248,8 @@ namespace Common.Lib.Core.Context
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
                                         userToken: UserToken,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -240,6 +265,8 @@ namespace Common.Lib.Core.Context
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
                                         userToken: UserToken,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,
@@ -258,7 +285,9 @@ namespace Common.Lib.Core.Context
             var paramsCarrier = ParamsCarrierFactory
                                     .CreateQueryRepositoryParams(
                                         userId: UserId,
-                                        userToken: UserToken,
+                                        userToken: ClientGlobals.AlternativeUserId,
+                                        userEmail: ClientGlobals.AlternativeUserEmail,
+                                        traceInfo: null,
                                         actionTime: DateTime.Now,
                                         repoTypeName: typeof(T).FullName,
                                         operations: operations,

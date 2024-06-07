@@ -1,9 +1,6 @@
 ﻿using Common.Lib.Core.Context;
-using Common.Lib.Core;
-using Common.Lib.Core.Expressions;
-using Common.Lib.Core.Tracking;
 using Common.Lib.Services.ParamsCarriers;
-using System;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Services.Protobuf
 {
@@ -11,6 +8,8 @@ namespace Common.Lib.Services.Protobuf
     {
         public UnitOfWorkParamsCarrier(Guid userId,
                                             string userToken,
+                                            string userEmail,
+                                            ITraceInfo? trace,
                                             DateTime actionTime,
                                             IEnumerable<IUoWActInfo> actions)
         {
@@ -19,7 +18,9 @@ namespace Common.Lib.Services.Protobuf
             {
                 UserId = userId,
                 UserToken = userToken,
-                ActionTime = actionTime
+                UserEmail = userEmail,
+                ActionTime = actionTime,
+                TraceInfo = trace
             };
 
             UowActions = actions;
@@ -47,6 +48,19 @@ namespace Common.Lib.Services.Protobuf
                 this.ServiceInfo.UserToken = value;
             }
         }
+
+        public string UserEmail
+        {
+            get
+            {
+                return this.ServiceInfo.UserEmail;
+            }
+            set
+            {
+                this.ServiceInfo.UserEmail = value;
+            }
+        }
+
         public DateTime ActionTime
 
         {
@@ -73,5 +87,7 @@ namespace Common.Lib.Services.Protobuf
                     SUowActions.Add(new UowActionInfo(action));
             }
         }
+
+        public ITraceInfo? TraceInfo { get; set; }
     }
 }

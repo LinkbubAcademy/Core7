@@ -2,17 +2,23 @@
 using Common.Lib.Core;
 using Common.Lib.Core.Tracking;
 using Common.Lib.Core.Expressions;
+using Common.Lib.Infrastructure;
 
 namespace Common.Lib.Services.ParamsCarriers
 {
     public interface IParamsCarrierFactory
     {
-        ISaveEntityParamsCarrier CreateSaveEntityParams(Guid userId, string userToken, DateTime actionTime, IEntityInfo entityInfo);
-        IDeleteEntityParamsCarrier CreateDeleteEntityParams(Guid userId, string userToken, DateTime actionTime, Guid entityId, string entityModelType);
+        string UserToken { get; set; }
+        string UserEmail { get; set; }
+
+        ISaveEntityParamsCarrier CreateSaveEntityParams(Guid userId, string userToken, string userEmail, ITraceInfo? traceInfo, DateTime actionTime, IEntityInfo entityInfo);
+        IDeleteEntityParamsCarrier CreateDeleteEntityParams(Guid userId, string userToken, string userEmail, ITraceInfo? traceInfo, DateTime actionTime, Guid entityId, string entityModelType);
 
         IQueryRepositoryParamsCarrier CreateQueryRepositoryParams(
                                             Guid userId,
                                             string userToken,
+                                            string userEmail, 
+                                            ITraceInfo? traceInfo,
                                             DateTime actionTime,
                                             string repoTypeName,
                                             List<Tuple<QueryTypes, IExpressionBuilder, ValueTypes>> operations,
@@ -21,6 +27,8 @@ namespace Common.Lib.Services.ParamsCarriers
         IParametricActionParamsCarrier CreateParametricActionParams(
                                                 Guid userId,
                                                 string userToken,
+                                                string userEmail, 
+                                                ITraceInfo? traceInfo,
                                                 DateTime actionTime,
                                                 string repoTypeName,
                                                 Guid entityId,
@@ -30,6 +38,8 @@ namespace Common.Lib.Services.ParamsCarriers
         IServiceActionParamsCarrier CreateServiceActionParams(
                                                 Guid userId,
                                                 string userToken,
+                                                string userEmail,
+                                                ITraceInfo? traceInfo,
                                                 DateTime actionTime,
                                                 string serviceTypeName,
                                                 string serviceActionName,
@@ -39,6 +49,8 @@ namespace Common.Lib.Services.ParamsCarriers
 
         IUnitOfWorkParamsCarrier CreateUnitOfWorkParams(Guid userId,
                                                             string userToken,
+                                                            string userEmail,
+                                                            ITraceInfo? traceInfo,
                                                             DateTime actionTime,
                                                             IEnumerable<IUoWActInfo> actions);
     }

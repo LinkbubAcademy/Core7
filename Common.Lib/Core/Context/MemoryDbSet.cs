@@ -1,4 +1,5 @@
-﻿using Common.Lib.Core.Expressions;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Core.Expressions;
 using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
 using System.Collections.Concurrent;
@@ -26,6 +27,10 @@ namespace Common.Lib.Core.Context
             return Items.Values;
         }
 
+        public void Clear()
+        {
+            Items = new ConcurrentDictionary<Guid, T>();
+        }
 
         #region CRUD
 
@@ -42,7 +47,7 @@ namespace Common.Lib.Core.Context
             return output;
         }
 
-        public Task<ISaveResult<T>> AddAsync(T entity)
+        public Task<ISaveResult<T>> AddAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             return Task.FromResult(Add(entity));
         }
@@ -81,11 +86,11 @@ namespace Common.Lib.Core.Context
         }
 
 
-        public Task<ISaveResult<T>> UpdateAsync(T entity)
+        public Task<ISaveResult<T>> UpdateAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             return Task.FromResult(Update(entity));
         }
-        public Task<IDeleteResult> DeleteAsync(Guid id)
+        public Task<IDeleteResult> DeleteAsync(Guid id, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             return Task.FromResult(Delete(id));
         }

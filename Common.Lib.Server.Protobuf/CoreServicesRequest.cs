@@ -1,4 +1,5 @@
-﻿using Common.Lib.Core;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Core;
 using Common.Lib.Core.Context;
 using Common.Lib.Infrastructure;
 using Common.Lib.Services.Protobuf;
@@ -18,13 +19,23 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<SaveResult> RequestAddNewEntity(SaveEntityParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                return new SaveResult()
+                {
+                    IsSuccess = false,
+                    IsMaintenanceModeOn = true,
+                    Message = ServerGlobals.MaintenanceModeMessage
+                };
+            }
+
             try
             {
                 var entity = ContextFactory.ReconstructEntity(paramsCarrier.EntityInfo);
                 entity.Id = paramsCarrier.EntityInfo.EntityId;
 
                 var sr1 = entity.SaveAction != null ?
-                                await entity.SaveAction() :
+                                await entity.SaveAction(new AuthInfo(paramsCarrier), paramsCarrier.ServiceInfo.TraceInfo) :
                                 new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
 
                 if (sr1.IsSuccess)
@@ -32,7 +43,7 @@ namespace Common.Lib.Server.Protobuf
                     var logManager = ContextFactory.Resolve<ILogManager>();
                     if (logManager != null)
                     {
-                        await logManager.RegisterChangesAsync(paramsCarrier.EntityInfo, "system");
+                        await logManager.RegisterChangesAsync(paramsCarrier.EntityInfo, paramsCarrier.UserToken);
                     }
                 }
 
@@ -46,6 +57,16 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<SaveResult> RequestUpdateEntity(SaveEntityParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                return new SaveResult()
+                {
+                    IsSuccess = false,
+                    IsMaintenanceModeOn = true,
+                    Message = ServerGlobals.MaintenanceModeMessage
+                };
+            }
+
             var qre = await ContextFactory.ReconstructAndUpdateEntity(paramsCarrier.EntityInfo);
 
             if (qre.IsSuccess)
@@ -55,7 +76,7 @@ namespace Common.Lib.Server.Protobuf
                 entity.Id = paramsCarrier.EntityInfo.EntityId;
 
                 var sr1 = entity.SaveAction != null ?
-                                await entity.SaveAction() :
+                                await entity.SaveAction(new AuthInfo(paramsCarrier), paramsCarrier.ServiceInfo.TraceInfo) :
                                 new Infrastructure.Actions.SaveResult<Entity>() { IsSuccess = false, Message = "Save Action not added" };
                 
                 if (sr1.IsSuccess)
@@ -63,7 +84,7 @@ namespace Common.Lib.Server.Protobuf
                     var logManager = ContextFactory.Resolve<ILogManager>();
                     if (logManager != null)
                     {
-                        await logManager.RegisterChangesAsync(paramsCarrier.EntityInfo, "system");
+                        await logManager.RegisterChangesAsync(paramsCarrier.EntityInfo, paramsCarrier.UserToken);
                     }
                 }
 
@@ -77,6 +98,16 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<DeleteResult> RequestDeleteEntity(DeleteEntityParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                return new DeleteResult()
+                {
+                    IsSuccess = false,
+                    IsMaintenanceModeOn = true,
+                    Message = ServerGlobals.MaintenanceModeMessage
+                };
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.EntityModelType);
             var qrEntity = await repo.FindAsync(paramsCarrier.EntityId);
 
@@ -91,7 +122,7 @@ namespace Common.Lib.Server.Protobuf
             entity.ContextFactory = ContextFactory;
 
             var dr1 = entity.DeleteAction != null ?
-                            await entity.DeleteAction() :
+                            await entity.DeleteAction(new AuthInfo(paramsCarrier), paramsCarrier.TraceInfo) :
                             new Infrastructure.Actions.DeleteResult() { IsSuccess = false, Message = "Save Action not added" };
 
             return await Task.FromResult(new DeleteResult(dr1));
@@ -99,6 +130,18 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<ProcessActionResult> RequestParametricAction(ParametricActionParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                return new ProcessActionResult()
+                {
+                    IsSuccess = false,
+                    IsMaintenanceModeOn = true,
+                    Message = ServerGlobals.MaintenanceModeMessage
+                };
+            }
+
+            var authInfo = new AuthInfo(paramsCarrier);
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var qrEntity = await repo.FindAsync(paramsCarrier.EntityId);
 
@@ -130,7 +173,7 @@ namespace Common.Lib.Server.Protobuf
                             logManager.RegisterChanges(uowLog, action.Change, "system");
                     }
 
-                    var sr1 = await uow.CommitAsync();
+                    var sr1 = await uow.CommitAsync(info: authInfo);
                     if(sr1.IsSuccess)
                     {
                         var sr2 = await uowLog.CommitAsync();
@@ -145,6 +188,17 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<ProcessActionResult> RequestServiceAction(ServiceActionParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn && 
+                !ServerGlobals.ServiceActionAllowedDuringMaintenance.Contains(paramsCarrier.ServiceActionName))
+            {
+                return new ProcessActionResult()
+                {
+                    IsSuccess = false,
+                    IsMaintenanceModeOn = true,
+                    Message = ServerGlobals.MaintenanceModeMessage
+                };
+            }
+
             var service = ContextFactory.GetBusinessService(paramsCarrier.ServiceType);
             var uow = ContextFactory.Resolve<IUnitOfWork>();
 
@@ -162,6 +216,17 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<QueryEntityResult> QueryRepositoryForEntity(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var output = new QueryEntityResult();
+
+                output.ActionResult.IsSuccess = false;
+                output.ActionResult.IsMaintenanceModeOn = true;
+                output.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return output;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
@@ -172,18 +237,56 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<QueryEntitiesResult> QueryRepositoryForEntities(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
-            using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
-            var result = await repo
-                                .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
-                                .ExecuteGetEntitiesRequest(paramsCarrier.Operations);
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var output = new QueryEntitiesResult();
 
-            return new QueryEntitiesResult(result);
+                output.ActionResult.IsSuccess = false;
+                output.ActionResult.IsMaintenanceModeOn = true;
+                output.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return output;
+            }
+
+            try
+            {
+                using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
+                var result = await repo
+                                    .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
+                                    .ExecuteGetEntitiesRequest(paramsCarrier.Operations);
+
+                return new QueryEntitiesResult(result);
+            }
+            catch (Exception e1)
+            {
+                throw e1;
+            }
         }
 
         public override async Task<UnitOfWorkResult> RequestUnityOfWorkOperations(UnitOfWorkParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var output = new UnitOfWorkResult
+                {
+                    IsSuccess = false,
+                    IsMaintenanceModeOn = true,
+                    Message = ServerGlobals.MaintenanceModeMessage
+                };
+
+                return output;
+            }
+
             using var uow = ContextFactory.Resolve<IUnitOfWork>();
-            var sr1 = await uow.CommitAsync(paramsCarrier.UowActions);
+
+            var authInfo = new AuthInfo(paramsCarrier);
+
+            var sr1 = await uow.CommitAsync(paramsCarrier.UowActions, authInfo, paramsCarrier.ServiceInfo.TraceInfo);
+
+            if (Log.IsLogActive && paramsCarrier.ServiceInfo.TraceInfo != null)
+            {
+                Log.AddTrace(paramsCarrier.ServiceInfo.TraceInfo);
+            }
 
             if (sr1.IsSuccess)
             {
@@ -195,17 +298,28 @@ namespace Common.Lib.Server.Protobuf
                     foreach (var action in uow.UowActions.Where(x => x.ActionInfoType == ActionInfoTypes.Save))
                         logManager.RegisterChanges(uowLog, action.Change, "system");
 
-                    await uowLog.CommitAsync();
+                    await uowLog.CommitAsync(null, authInfo);
                 }
             }
 
-            return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = sr1.IsSuccess, Message = sr1.Message });
+            return await Task.FromResult(new UnitOfWorkResult() { IsSuccess = sr1.IsSuccess, Message = sr1.Message, Errors = sr1.Errors });
         }
 
         #region Get Value
 
         public override async Task<QueryValueResult> QueryRepositoryForBool(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var o = new QueryValueResult();
+
+                o.ActionResult.IsSuccess = false;
+                o.ActionResult.IsMaintenanceModeOn = true;
+                o.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return o;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
@@ -218,6 +332,17 @@ namespace Common.Lib.Server.Protobuf
         }
         public override async Task<QueryValueResult> QueryRepositoryForInt(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var o = new QueryValueResult();
+
+                o.ActionResult.IsSuccess = false;
+                o.ActionResult.IsMaintenanceModeOn = true;
+                o.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return o;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
@@ -231,6 +356,17 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<QueryValueResult> QueryRepositoryForDouble(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var o = new QueryValueResult();
+
+                o.ActionResult.IsSuccess = false;
+                o.ActionResult.IsMaintenanceModeOn = true;
+                o.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return o;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
@@ -242,9 +378,19 @@ namespace Common.Lib.Server.Protobuf
             return output;
         }
 
-
         public override async Task<QueryValueResult> QueryRepositoryForString(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var o = new QueryValueResult();
+
+                o.ActionResult.IsSuccess = false;
+                o.ActionResult.IsMaintenanceModeOn = true;
+                o.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return o;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
@@ -258,6 +404,17 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<QueryValueResult> QueryRepositoryForDateTime(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var o = new QueryValueResult();
+
+                o.ActionResult.IsSuccess = false;
+                o.ActionResult.IsMaintenanceModeOn = true;
+                o.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return o;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
@@ -271,6 +428,17 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<QueryValueResult> QueryRepositoryForGuid(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var o = new QueryValueResult();
+
+                o.ActionResult.IsSuccess = false;
+                o.ActionResult.IsMaintenanceModeOn = true;
+                o.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return o;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)
@@ -286,6 +454,17 @@ namespace Common.Lib.Server.Protobuf
 
         public override async Task<QueryValuesResult> QueryRepositoryForValues(QueryRepositoryParamsCarrier paramsCarrier, ServerCallContext context)
         {
+            if (ServerGlobals.IsMaintenanceModeOn)
+            {
+                var o = new QueryValuesResult();
+
+                o.ActionResult.IsSuccess = false;
+                o.ActionResult.IsMaintenanceModeOn = true;
+                o.ActionResult.Message = ServerGlobals.MaintenanceModeMessage;
+
+                return o;
+            }
+
             using var repo = ContextFactory.GetRepository(paramsCarrier.RepositoryType);
             var result = await repo
                                 .DeclareChildrenPolicy(paramsCarrier.NestingLevel)

@@ -1,8 +1,7 @@
-﻿using Common.Lib.Core.Expressions;
+﻿using Common.Lib.Authentication;
+using Common.Lib.Core.Expressions;
 using Common.Lib.Infrastructure;
 using Common.Lib.Infrastructure.Actions;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace Common.Lib.Core.Context
 {
@@ -49,7 +48,7 @@ namespace Common.Lib.Core.Context
         }
 
         #region CRUD operations
-        public virtual Task<ISaveResult<T>> AddAsync(T entity)
+        public virtual Task<ISaveResult<T>> AddAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             if (entity.Id == default)
                 entity.Id = Guid.NewGuid();
@@ -61,13 +60,13 @@ namespace Common.Lib.Core.Context
             return output;
         }
             
-        public virtual Task<IDeleteResult> DeleteAsync(Guid id)
+        public virtual Task<IDeleteResult> DeleteAsync(Guid id, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             var output = DbSet.DeleteAsync(id);
             return output;
         }
 
-        public virtual Task<ISaveResult<T>> UpdateAsync(T entity)
+        public virtual Task<ISaveResult<T>> UpdateAsync(T entity, AuthInfo? info = null, ITraceInfo? trace = null)
         {
             var output = DbSet.UpdateAsync(entity);
             return output;

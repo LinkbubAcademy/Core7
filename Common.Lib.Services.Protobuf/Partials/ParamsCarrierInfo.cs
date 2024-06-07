@@ -1,4 +1,5 @@
-﻿using Common.Lib.Services.ParamsCarriers;
+﻿using Common.Lib.Infrastructure;
+using Common.Lib.Services.ParamsCarriers;
 
 namespace Common.Lib.Services.Protobuf
 {
@@ -28,11 +29,27 @@ namespace Common.Lib.Services.Protobuf
             }
         }
 
+        public ITraceInfo? TraceInfo
+        {
+            get
+            {
+                if (STraceInfo.IsNull)
+                    return null;
+
+                return STraceInfo;
+            }
+            set
+            {
+                STraceInfo = new ProtoTraceInfo(value);
+            }
+        }
+
         public ParamsCarrierInfo(IParamsCarrierInfo paramsCarrier)
         {
             UserId = paramsCarrier.UserId;
             ActionTime = paramsCarrier.ActionTime;
             UserToken = paramsCarrier.UserToken;
+            TraceInfo = paramsCarrier.TraceInfo;
         }
     }
 }
